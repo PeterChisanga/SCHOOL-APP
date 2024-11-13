@@ -6,11 +6,10 @@ use App\Models\ClassModel;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PDF;
 
-class ClassController extends Controller
-{
-    public function index()
-    {
+class ClassController extends Controller {
+    public function index() {
         $schoolId = Auth::user()->school_id;
 
         $classes = ClassModel::where('school_id', $schoolId)->get();
@@ -49,8 +48,27 @@ class ClassController extends Controller
                 ->with('error', 'You are not authorized to view this class.');
         }
 
-        return view('classes.show', compact('class'));
+        $students = $class->pupils;
+
+        return view('classes.show', compact('class', 'students'));
     }
+
+    public function exportPdf(ClassModel $class)
+    {
+        $schoolId = Auth::user()->school_id;
+
+        if ($class->school_id !== $schoolId) {
+            return redirect()->route('classes.index')
+                ->with('error', 'You are not authorized to export this class list.');
+        }
+
+        $students = $class->pupils; // Assuming you have a relationship defined on ClassModel
+
+        $pdf = PDF::loadView('classes.pdf', compact('class', 'students'));
+
+        return $pdf->download('class_'.$class->name.'_students_list.pdf');
+    }
+
 
     public function edit(ClassModel $class)
     {

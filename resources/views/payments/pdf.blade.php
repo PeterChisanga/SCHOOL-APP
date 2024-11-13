@@ -74,7 +74,7 @@
             <td>{{ $payment->term }} {{ $payment->created_at->format('Y') }}</td>
         </tr>
     </table>
-
+    <br>
     <h3>Transactions</h3>
     <table>
         <thead>

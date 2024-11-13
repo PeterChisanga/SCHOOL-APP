@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ExpenseController extends Controller
 {
-    public function index()
-    {
+    public function index() {
         $schoolId = Auth::user()->school_id;
         $expenses = Expense::where('school_id', $schoolId)->get();
 

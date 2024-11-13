@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Exam Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</title>
+    <title> Exam Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -49,10 +49,11 @@
 
     <div class="center-text" style="margin-top: 30px;">
         <h2>SCHOOL REPORT FORM</h2>
-        <h3>Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</h3>
+        <h3> Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</h3>
     </div>
+    <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term }}  {{ $pupil->examResults->where('term', $term)->last()->created_at->format('Y') }}</p>
 
-    <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }}</p>
+    {{-- <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term}} {{ $pupil->examResults->created_at }}</p> --}}
 
     <table>
         <thead>
@@ -66,7 +67,10 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($pupil->examResults as $result)
+            @php
+                $resultsForTerm = $pupil->examResults->where('term', $term);
+            @endphp
+            @foreach ($resultsForTerm as $result)
                 @php
                     $average = ($result->mid_term_mark + $result->end_of_term_mark) / 2;
 

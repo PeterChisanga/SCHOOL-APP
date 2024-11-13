@@ -18,6 +18,7 @@
 
     <a href="{{ route('classes.create') }}" class="btn btn-primary mb-3">Create New Class</a>
 
+
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -32,7 +33,7 @@
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $class->name }}</td>
                     <td>
-                        <a href="{{ route('classes.show', $class->id) }}" class="btn btn-info">View</a>
+                        <a href="{{ route('classes.show', $class->id) }}" class="btn btn-info mb-1">View</a>
 
                         <a href="{{ route('classes.edit', $class->id) }}" class="btn btn-warning">Edit</a>
                     </td>

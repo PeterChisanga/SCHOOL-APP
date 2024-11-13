@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Pupil;
 use App\Models\ClassModel;
 use App\Models\Teacher;
+use App\Models\Secretary;
 use App\Models\Subject;
 use App\Models\ParentModel;
 use Illuminate\Http\Request;
@@ -20,8 +21,7 @@ class UserController extends Controller
         return view('users.create');
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $this->validate($request, [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -43,8 +43,7 @@ class UserController extends Controller
         return redirect('/login')->with('success', 'Account created successfully.');
     }
 
-    public function login(Request $request)
-    {
+    public function login(Request $request) {
         $request->validate([
             'login' => 'required|string',
             'password' => 'required|string',
@@ -103,10 +102,8 @@ class UserController extends Controller
         ));
     }
 
-    public function teacherDashboard()
-    {
+    public function teacherDashboard() {
         $schoolId = Auth::user()->school_id;
-        //  dd(Auth::user()->user_type);
 
         $studentsCount = Pupil::where('school_id', $schoolId)->count();
         $teachersCount = Teacher::where('school_id', $schoolId)->count();
@@ -121,6 +118,26 @@ class UserController extends Controller
         });
 
         return view('dashboard.teacher', compact(
+            'studentsCount', 'teachersCount', 'parentsCount',
+            'classesCount', 'subjectsCount', 'classNames', 'studentsPerClass'
+        ));
+    }
+    public function secretaryDashboard() {
+        $schoolId = Auth::user()->school_id;
+
+        $studentsCount = Pupil::where('school_id', $schoolId)->count();
+        $teachersCount = Teacher::where('school_id', $schoolId)->count();
+        $parentsCount = ParentModel::where('school_id', $schoolId)->count();
+        $classesCount = ClassModel::where('school_id', $schoolId)->count();
+        $subjectsCount = Subject::where('school_id', $schoolId)->count();
+
+        $classes = ClassModel::where('school_id', $schoolId)->get();
+        $classNames = $classes->pluck('name');
+        $studentsPerClass = $classes->map(function($class) {
+            return $class->pupils()->count();
+        });
+
+        return view('dashboard.secretary', compact(
             'studentsCount', 'teachersCount', 'parentsCount',
             'classesCount', 'subjectsCount', 'classNames', 'studentsPerClass'
         ));

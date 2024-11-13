@@ -74,6 +74,7 @@
 
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
+    <a href="{{ route('examResults.index') }}" class="btn btn-secondary mt-2">Back</a>
     @endif
 
 </div>

@@ -32,5 +32,10 @@ class User extends Authenticatable
         return $this->hasOne(School::class, 'owner_id');
     }
 
+    public function teacher()
+    {
+        return $this->hasMany(Teacher::class);
+    }
+
 }
 

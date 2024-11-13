@@ -40,6 +40,7 @@
             <input type="text" class="form-control" id="deposit_slip_id" name="deposit_slip_id" value="{{ old('deposit_slip_id') }}">
         </div>
 
+        <a href="{{ route('payments.show', $payment->id) }}" class="btn btn-secondary btn-sm">Back</a>
         <button type="submit" class="btn btn-primary">Record Payment of the balance</button>
     </form>
 </div>

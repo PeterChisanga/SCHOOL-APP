@@ -43,4 +43,12 @@ class Teacher extends Model
         return $this->belongsTo(ClassModel::class);
     }
 
+    /**
+     * Get the class that the teacher is associated with.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 }

@@ -21,8 +21,7 @@ class PaymentController extends Controller {
                     ->orderBy('year', 'desc')
                     ->pluck('year');
 
-        $query = Payment::with('pupil')
-                        ->where('school_id', $schoolId);
+        $query = Payment::with('pupil')->where('school_id', $schoolId);
 
         if ($request->term) {
             $query->where('term', $request->term);
@@ -32,7 +31,9 @@ class PaymentController extends Controller {
             $query->whereYear('created_at', $request->year);
         }
 
-        $payments = $query->get();
+        $payments = $query->orderBy('updated_at', 'desc')
+                      ->orderBy('created_at', 'desc')
+                      ->get();
 
         return view('payments.index', compact('payments', 'years'));
     }

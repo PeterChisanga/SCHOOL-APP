@@ -1,8 +1,8 @@
  <!-- /.content-wrapper -->
   <footer class="main-footer">
-    <strong>Copyright &copy; 2024.</strong>
+    <strong>Copyright &copy; E-school 2024.</strong>
     All rights reserved.
-    
+
   </footer>
 {{-- <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">

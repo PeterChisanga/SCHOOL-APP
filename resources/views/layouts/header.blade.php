@@ -47,8 +47,10 @@
                     <i class="nav-icon fas fa-tachometer-alt"></i>
                     @if (Auth::user()->user_type=='admin')
                     <p>Admin Dashboard</p>
-                    @else
+                    @elseif (Auth::user()->user_type=='teacher')
                     <p>Teacher Dashboard</p>
+                    @else
+                    <p>Secretary Dashboard</p>
                     @endif
                 </a>
             </li>
@@ -63,6 +65,16 @@
             </li>
             @endif
 
+            {{-- seretaries --}}
+            @if (Auth::user()->user_type=='admin')
+            <li class="nav-item">
+                <a href="{{ route('secretaries.index') }}" class="nav-link">
+                    <i class="nav-icon fas  fa-user-tie"></i>
+                    <p>Secretaries</p>
+                </a>
+            </li>
+            @endif
+
             <!-- Pupils -->
             <li class="nav-item">
                 <a href="{{ route('pupils.index') }}" class="nav-link">
@@ -70,7 +82,6 @@
                     <p>Pupils</p>
                 </a>
             </li>
-
 
             <!-- Parents -->
             <li class="nav-item">
@@ -88,10 +99,16 @@
                     <p>Expenses</p>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('incomes.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-chart-line"></i>
+                    <p>Incomes</p>
+                </a>
+            </li>
             @endif
 
             <!-- Fees -->
-            @if (Auth::user()->user_type=='admin')
+            @if (Auth::user()->user_type === 'admin' || Auth::user()->user_type === 'secretary')
             <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="nav-icon fas fa-dollar-sign"></i>
@@ -112,7 +129,6 @@
             @endif
 
             <!-- Academics -->
-             @if (Auth::user()->user_type=='admin')
             <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="nav-icon fas fa-book"></i>
@@ -122,12 +138,14 @@
                     </p>
                 </a>
                 <ul class="nav nav-treeview">
+                    @if (Auth::user()->user_type=='admin')
                     <li class="nav-item">
                         <a href="{{ route('subjects.index') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Subjects</p>
                         </a>
                     </li>
+                    @endif
                     <li class="nav-item">
                         <a href="{{ route('classes.index') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
@@ -136,8 +154,6 @@
                     </li>
                 </ul>
             </li>
-            @endif
-
 
             <!-- Examinations -->
             <li class="nav-item">
@@ -155,12 +171,12 @@
                             <p>Exam Results</p>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a href="" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Exam Schedule</p>
                         </a>
-                    </li>
+                    </li> --}}
                 </ul>
             </li>
 

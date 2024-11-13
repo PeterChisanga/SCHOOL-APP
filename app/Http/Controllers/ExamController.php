@@ -33,7 +33,10 @@ class ExamController extends Controller {
             $query->where('subject_id', $request->subject_id);
         }
 
-        $examResults = $query->paginate(10);
+        $examResults = $query
+                    ->orderBy('updated_at', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
 
         return view('examResults.index', compact('examResults', 'classes', 'subjects'));
     }
@@ -93,10 +96,27 @@ class ExamController extends Controller {
                 ->with('error', 'You are not authorized to view this exam result.');
         }
 
-        return view('examResults.show', compact('examResult'));
+        $terms = $examResult->pupil->examResults->pluck('term')->unique();
+
+        return view('examResults.show', compact('examResult', 'terms'));
     }
 
-    public function exportPdf(Pupil $pupil) {
+    // public function exportPdf(Pupil $pupil) {
+    //     $schoolId = Auth::user()->school_id;
+
+    //     $school = School::find($schoolId);
+
+    //     if ($pupil->school_id !== $schoolId) {
+    //         return redirect()->route('examResults.index')
+    //             ->with('error', 'You are not authorized to export this exam result.');
+    //     }
+
+    //     $pdf = PDF::loadView('examResults.pdf', compact('pupil','school'));
+    //     return $pdf->download('exam_results_' . $pupil->first_name . '.pdf');
+    // }
+
+
+    public function exportPdf(Pupil $pupil, $term) {
         $schoolId = Auth::user()->school_id;
 
         $school = School::find($schoolId);
@@ -106,8 +126,18 @@ class ExamController extends Controller {
                 ->with('error', 'You are not authorized to export this exam result.');
         }
 
-        $pdf = PDF::loadView('examResults.pdf', compact('pupil','school'));
-        return $pdf->download('exam_results_' . $pupil->first_name . '.pdf');
+        // Fetch results for the selected term only
+        $examResultsForTerm = $pupil->examResults->where('term', $term);
+
+        // Pass selected term, exam results, and school to the PDF view
+        $pdf = PDF::loadView('examResults.pdf', [
+            'pupil' => $pupil,
+            'school' => $school,
+            'examResultsForTerm' => $examResultsForTerm,
+            'term' => $term
+        ]);
+
+        return $pdf->download("exam_results_{$pupil->first_name}_{$term}.pdf");
     }
 
     public function edit(ExamResult $examResult) {
