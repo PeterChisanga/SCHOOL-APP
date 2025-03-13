@@ -14,18 +14,17 @@ class SecretaryMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
-    {
-        if(!empty(Auth::check())){
-            if(Auth::user()->user_type == 'secretary'){
-                 return $next($request);
-            }else{
+    public function handle(Request $request, Closure $next): Response {
+        if (Auth::check()) {
+            if (Auth::user()->user_type === 'secretary' || Auth::user()->user_type === 'admin') {
+                return $next($request);
+            } else {
                 Auth::logout();
-                return redirect(url(''));
+                return redirect('/login')->with('error', 'Unauthorized access');
             }
-        }else{
-            Auth::logout();
-            return redirect(url(''));
         }
+
+        return redirect('/login')->with('error', 'Please log in to access this page.');
     }
+
 }

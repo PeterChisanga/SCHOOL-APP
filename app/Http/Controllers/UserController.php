@@ -16,8 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    public function create()
-    {
+    public function create() {
         return view('users.create');
     }
 
@@ -122,6 +121,7 @@ class UserController extends Controller
             'classesCount', 'subjectsCount', 'classNames', 'studentsPerClass'
         ));
     }
+
     public function secretaryDashboard() {
         $schoolId = Auth::user()->school_id;
 
@@ -148,28 +148,23 @@ class UserController extends Controller
         return redirect('/login')->with('success', 'Logged out successfully.');
     }
 
-    public function show(User $user)
-    {
+    public function show(User $user) {
         $user = Auth::user();
         return view('users.show', compact('user'));
     }
 
-    public function changePassword(Request $request)
-    {
+    public function changePassword(Request $request) {
         $user = Auth::user();
 
-        // Validate the input
         $request->validate([
             'current_password' => 'required',
             'new_password' => 'required|min:8|confirmed',
         ]);
 
-        // Check if the current password matches
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect']);
         }
 
-        // Update the password
         $user->password = Hash::make($request->new_password);
         $user->save();
 

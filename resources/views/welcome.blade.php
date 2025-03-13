@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>E-school</title>
+    <link rel="icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
+    <title>E-School Zambia Home</title>
     <link rel="stylesheet" href="{{ asset('style.css') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -48,11 +49,9 @@
     <section class="intro">
       <div class="row">
         <div class="intro-col">
-          <h1>All in one</h1>
+          <h1>Smart Hub</h1>
           <p>
-            E-School is a platform that enables school owners to manage their
-            institutions efficiently and profitably by tracking income and
-            expenses and maintaining student records.
+            Smart and profitable school management.
           </p>
           <a href="/about" class="hero-btn">Learn more</a>
         </div>
@@ -124,77 +123,17 @@
       </div>
     </section>
 
-    <section class="intro">
-      <div class="row">
-        <div class="intro-col">
-          <img src="{{ asset('images/mission.jpg') }}" alt="" />
-        </div>
-        <div class="intro-col">
-          <h1>Our Mission</h1>
-          <p>
-            E-school is a platform that allows school owners to run their
-            schools efficiently and profitably. On this platform the school
-            owner can truck their incomes by trucking the payment of each and
-            every student at the school. Similarly you are able to truck your
-            expenses pupils performance tests exams and salaries of school
-            staff.
-          </p>
-          <a href="/about" class="hero-btn">Learn more</a>
-        </div>
-      </div>
-    </section>
-
     <section class="testimonials">
-      <h1>What Our Clients Say</h1>
-      <p>Below is the information about the experience of our clients.</p>
+        <h1>Government Endorsement</h1>
+        <p>We are proud to be officially recognized by the Zambian government for our commitment to enhancing education through technology. This letter signifies the government’s confidence in our mission to revolutionize the learning experience for students and educators alike.</p>
 
-      <div class="row">
-        <div class="testimonial-col">
-          <img src="{{ asset('images/user2.jpg') }}" alt="" />
-          <div>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vitae
-              deserunt commodi nihil optio, ut reprehenderit. Nisi sed possimus,
-              hic officia recusandae molestiae praesentium, quaerat magni
-              dolorem fuga, in nihil. Hic?
-            </p>
-            <h3>Mr MWAMBA Peter</h3>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
+        <div class="row">
+            <img src="{{ asset('images/introductory-letter-e-school.jpg')}}" alt="Government Endorsement Letter" class="responsive-img">
         </div>
-        <div class="testimonial-col">
-          <img src="{{ asset('images/user2.jpg') }}" alt="" />
-          <div>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vitae
-              deserunt commodi nihil optio, ut reprehenderit. Nisi sed possimus,
-              hic officia recusandae molestiae praesentium, quaerat magni
-              dolorem fuga, in nihil. Hic?
-            </p>
-            <h3>Mr KAPINI Paul</h3>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-half-o"></i>
-          </div>
-        </div>
-      </div>
     </section>
 
-    <section class="footer">
-      <div class="icons">
-        <i class="fa fa-facebook"></i>
-        <i class="fa fa-twitter"></i>
-        <i class="fa fa-instagram"></i>
-        <i class="fa fa-linkedin"></i>
-      </div>
-      <p>Made with <i class="fa fa-heart-o"></i> by PCM</p>
-    </section>
+    <!-- ------------ footer ---------- -->
+    @include('footer')
 
     <!-- -------JavaScript for toggle Menu------ -->
     <script>

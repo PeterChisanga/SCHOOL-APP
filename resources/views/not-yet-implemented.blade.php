@@ -4,8 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
-    <title>E-School Zambia Products</title>
+    <title>E-school-products</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -40,28 +39,10 @@
 
     <!-- ------ Our Products ------ -->
     <section class="our-products" aria-labelledby="products-heading">
-        <div class="container">
-            <p>Our E-School Publications are compact, easy-to-use past paper booklets designed to help school pupils with their revision. These booklets contain carefully selected past exam questions to give students a structured way to practice and prepare effectively.</p>
-            <p>With a portable format, E-School Publications make it convenient for pupils to study anytime, anywhere. They serve as an excellent tool for reinforcing knowledge, familiarizing students with exam patterns, and boosting confidence before exams.</p>
-
-            <div class="products-grid">
-                <div class="product-item">
-                    <img src="images/grade-7-copy.jpg" alt="Grade 7 Mathematics Booklet" />
-                    <h4>Grade 7 Mathematics</h4>
-                </div>
-                <div class="product-item">
-                    <img src="images/grade-9-copy.jpg" alt="Grade 9 Mathematics 1 Booklet" />
-                    <h4>Grade 9 Mathematics Paper 1</h4>
-                </div>
-                <div class="product-item">
-                    <img src="images/grade-7-copy-3.jpg" alt="Grade 7 Mathematics Booklet" />
-                    <h4>Grade 7 Mathematics</h4>
-                </div>
-                <div class="product-item">
-                    <img src="images/booklet-4.jpg" alt="Grade 12 Mathematics 1 Booklet" />
-                    <h4>Grade 12 Mathematics Paper 1</h4>
-                </div>
-            </div>
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-tools fa-2x"></i>
+            <h4 class="mt-3">This feature is still under development</h4>
+            <p class="mb-0">We're working hard to bring this functionality to you soon. Stay tuned!</p>
         </div>
     </section>
 

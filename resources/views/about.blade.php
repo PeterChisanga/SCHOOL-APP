@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>E-school-about</title>
+    <link rel="icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
+    <title>E-School Zambia About</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,21 +39,14 @@
     </section>
 
     <!-- -------------- about us content ---------------- -->
-
     <section class="about-us">
       <div class="row">
         <div class="about-col">
-          <h1>We provide quality software and technologies to our clients</h1>
+          <h1>We provide high-quality software and technology solutions to our clients.</h1>
           <p>
-            E-school is a platform that allows school owners to run their
-            schools efficiently and profitably. On this platform the school
-            owner can truck their incomes by trucking the payment of each and
-            every student at the school. Similarly you are able to truck your
-            expenses by keeping your records and receipts on the application.
-            When it comes to pupils, all the information concerning on a student
-            such as name grade parent names grades/marks and health status are
-            recoreded easily on the platform.
+            E-School is a comprehensive platform designed to help school owners efficiently and profitably manage their institutions. With E-School, administrators can easily track income by monitoring student payments and managing expenses with organized records and receipts.
           </p>
+          <p>The platform also simplifies student data management, allowing schools to store essential details such as names, grades, parent information, academic performance, and health records—all in one place for easy access and improved efficiency.</p>
         </div>
         <div class="about-col">
           <img src="images/about-final.jpg" alt="" />
@@ -60,18 +54,8 @@
       </div>
     </section>
 
-    <!-- -------------- Footer -------------------- -->
-
-    <section class="footer">
-      <div class="icons">
-        <i class="fa fa-facebook"></i>
-        <i class="fa fa-twitter"></i>
-        <i class="fa fa-instagram"></i>
-        <i class="fa fa-linkedin"></i>
-      </div>
-      <p>Made by PCM</p>
-      <p></p>
-    </section>
+    <!-- ------------ footer ---------- -->
+    @include('footer')
 
     <!-- -------JavaScript for toggle Menu------ -->
     <script>

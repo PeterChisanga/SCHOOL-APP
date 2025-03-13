@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>E-school-contact</title>
+    <link rel="icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
+    <title>E-School Zambia Contact</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,92 +39,61 @@
     </section>
 
     <!-- ------------ contact us------------ -->
+    <section class="contact-us" aria-labelledby="contact-heading">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="contact-details">
+                        <h3><i class="fa fa-envelope-o" aria-hidden="true"></i>For General Inquiries</h3>
+                        <p><a href="mailto:eschool240@gmail.com">eschool240@gmail.com</a></p>
+                    </div>
+                </div>
 
-    <!-- <section class="location">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d211989.6870162405!2d-5.67810447571344!3d33.88092574457436!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda044d23bfc49d1%3A0xfbbf80a99e4cde18!2sMeknes!5e0!3m2!1sen!2sma!4v1666726197625!5m2!1sen!2sma"
-        width="600"
-        height="450"
-        style="border: 0"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-      ></iframe>
-    </section> -->
+                <div class="contact-item">
 
-    <!-- <section class="contact-us">
-      <div class="row">
-        <div class="contact-col">
-          <i class="fa fa-home"></i>
-          <span>
-            <h5>NR 1182 Marjane 2</h5>
-            <p>Meknes,Maroc</p>
-          </span>
-        </div>
-        <div class="contact-col">
-          <i class="fa fa-phone"></i>
-          <span>
-            <h5>+212 696 633 760</h5>
-            <p>Monday to Saturday, 10AM to 6PM</p>
-          </span>
-        </div>
-        <div class="contact-col">
-          <i class="fa fa-envelope-o"></i>
-          <span>
-            <h5>pcmholdings@gmail.com</h5>
-            <p>Email us your query</p>
-          </span>
-        </div>
-        <div class="contact-col">
-          <form action="form-handler.php" method="post">
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter your name"
-              required
-            />
-            <input
-              type="text"
-              name="email"
-              placeholder="Enter email address"
-              required
-            />
-            <input
-              type="text"
-              name="subject"
-              placeholder="Enter your subject"
-              required
-            />
-            <textarea
-              name="message"
-              id=""
-              placeholder="Message"
-              rows="8"
-              required
-            ></textarea>
-            <button type="submit" class="hero-btn red-btn">Send Message</button>
-          </form>
-        </div>
-      </div>
-    </section> -->
+                    <div class="contact-details">
+                        <h3><i class="fa fa-phone" aria-hidden="true"></i>Phone</h3>
+                        <p>Call us at: <a href="tel:+260765574796">+260 765 574 796</a></p>
+                    </div>
+                </div>
 
-    <!-- -------------- Footer -------------------- -->
+                <div class="contact-item">
+                    <div class="contact-details">
+                        <h3><i class="fa fa-clock-o" aria-hidden="true"></i>Office Hours</h3>
+                        <p>Monday to Friday: 8:00 AM – 5:00 PM (GMT+2)</p>
+                    </div>
+                </div>
 
-    <section class="footer">
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vitae deserunt
-        , ut reprehenderit. Nisi sed possimus,hic officia recusan molestiae
-        praesentium, quaerat magni dolorem fuga, in nihil. Hic?
-      </p>
-      <div class="icons">
-        <i class="fa fa-facebook"></i>
-        <i class="fa fa-twitter"></i>
-        <i class="fa fa-instagram"></i>
-        <i class="fa fa-linkedin"></i>
-      </div>
-      <p>Made with <i class="fa fa-heart-o"></i> by PCM</p>
-      <p></p>
+                <div class="contact-item">
+                    <div class="contact-details">
+                        <h3><i class="fa fa-map-marker" aria-hidden="true"></i>Address</h3>
+                        <p>Kapini Technologies<br>Chamba Valley, 532A/G6/2/E, Zambia</p>
+                        <p><strong>Registration Number:</strong> 320230095865</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-details">
+                        <h3><i class="fa fa-users" aria-hidden="true"></i>Follow Us</h3>
+                        <p>Stay connected with us on social media:</p>
+                        <ul class="social-links">
+                            <li><a href="https://www.facebook.com/share/1B6bdQEZnK/?mibextid=wwXIfr" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i>E-school Zambia</a></li>
+                            <li><a href="https://www.instagram.com/eschool_zambia?igsh=aDQ1dHdxbXFxZnQz" target="_blank"><i class="fa fa-instagram" aria-hidden="true"></i> E-school Zambia</a></li>
+                            <li><a href="https://x.com/eschool_zambia/status/1805381549531316336?s=48" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i> E-school Zambia</a></li>
+                            <a href="https://whatsapp.com/channel/0029Vaa3lpe72WTw2KxVAv3w" target="_blank" aria-label="WhatsApp"><i class="fa fa-whatsapp"></i>E-school Zambia</a>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
+
+    <footer class="contact-footer">
+        <p class="footer-text">We look forward to hearing from you!</p>
+    </footer>
+
+    <!-- ------------ footer ---------- -->
+    @include('footer')
 
     <!-- -------JavaScript for toggle Menu------ -->
     <script>

@@ -75,21 +75,47 @@ Route::middleware(['auth'])->group(function () {
 
 Route::group(['middleware' => 'admin'], function() {
     Route::get('/admin/dashboard', [UserController::class, 'adminDashboard'])->name('admin.dashboard');
-
-    Route::get('payments/select-pupil', [PaymentController::class, 'selectPupil'])->name('payments.select-pupil');
-    Route::get('payments/create/{pupil}', [PaymentController::class, 'create'])->name('payments.create');
-    Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
-    Route::get('payments/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('payments.create-pay-balance');
-    Route::post('payments/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('payments.pay-balance');
-    Route::get('payments/', [PaymentController::class, 'index'])->name('payments.index');
-    Route::post('payments/', [PaymentController::class, 'store'])->name('payments.store');
-    Route::get('payments/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('payments.export-pdf');
-
     Route::resource('teachers', TeacherController::class);
     Route::resource('secretaries', SecretaryController::class);
     Route::resource('subjects', SubjectController::class);
     Route::resource('expenses', ExpenseController::class);
     Route::resource('incomes', IncomeController::class);
+
+    Route::prefix('payments')->name('payments.')->group(function() {
+        Route::get('/select-pupil', [PaymentController::class, 'selectPupil'])->name('select-pupil');
+        Route::get('/create/{pupil}', [PaymentController::class, 'create'])->name('create');
+        Route::get('/', [PaymentController::class, 'index'])->name('index');
+        Route::post('/', [PaymentController::class, 'store'])->name('store');
+        Route::get('/{payment}', [PaymentController::class, 'show'])->name('show');
+        Route::get('/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('create-pay-balance');
+        Route::post('/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('pay-balance');
+        Route::get('/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('export-pdf');
+    });
+});
+
+
+Route::group(['middleware' => 'secretary'], function() {
+    Route::get('/secretary/dashboard', [UserController::class, 'secretaryDashboard'])->name('secretary.dashboard');
+
+     Route::prefix('payments')->name('payments.')->group(function() {
+        Route::get('/select-pupil', [PaymentController::class, 'selectPupil'])->name('select-pupil');
+        Route::get('/create/{pupil}', [PaymentController::class, 'create'])->name('create');
+        Route::get('/', [PaymentController::class, 'index'])->name('index');
+        Route::post('/', [PaymentController::class, 'store'])->name('store');
+        Route::get('/{payment}', [PaymentController::class, 'show'])->name('show');
+        Route::get('/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('create-pay-balance');
+        Route::post('/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('pay-balance');
+        Route::get('/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('export-pdf');
+    });
+
+    // Route::get('payments/select-pupil', [PaymentController::class, 'selectPupil'])->name('payments.select-pupil');
+    // Route::get('payments/create/{pupil}', [PaymentController::class, 'create'])->name('payments.create');
+    // Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+    // Route::get('payments/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('payments.create-pay-balance');
+    // Route::post('payments/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('payments.pay-balance');
+    // Route::get('payments/', [PaymentController::class, 'index'])->name('payments.index');
+    // Route::post('payments/', [PaymentController::class, 'store'])->name('payments.store');
+    // Route::get('payments/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('payments.export-pdf');
 });
 
 Route::group(['middleware' => 'teacher'], function() {
@@ -97,27 +123,14 @@ Route::group(['middleware' => 'teacher'], function() {
 
 });
 
-Route::group(['middleware' => 'secretary'], function() {
-    Route::get('/secretary/dashboard', [UserController::class, 'secretaryDashboard'])->name('secretary.dashboard');
-
-    Route::get('payments/select-pupil', [PaymentController::class, 'selectPupil'])->name('payments.select-pupil');
-    Route::get('payments/create/{pupil}', [PaymentController::class, 'create'])->name('payments.create');
-    Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
-    Route::get('payments/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('payments.create-pay-balance');
-    Route::post('payments/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('payments.pay-balance');
-    Route::get('payments/', [PaymentController::class, 'index'])->name('payments.index');
-    Route::post('payments/', [PaymentController::class, 'store'])->name('payments.store');
-    Route::get('payments/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('payments.export-pdf');
-});
-
 Route::group(['middleware' => 'parent'], function() {
     Route::get('parent/dashboard', function () {
-        return view('dashboard.index');
+        return view('not-yet-implemented');
     });
 });
 
 Route::group(['middleware' => 'student'], function() {
-    Route::get('student/dashboard', function () {
-        return view('dashboard.index');
+    Route::get('parent/dashboard', function () {
+        return view('not-yet-implemented');
     });
 });

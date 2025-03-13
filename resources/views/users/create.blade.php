@@ -109,18 +109,7 @@
 
                                 <!-- User Type -->
                                 <div class="form-group mb-3">
-                                    <label for="user_type">{{ __('User Type') }}</label>
-                                    <select id="user_type" name="user_type" class="form-control @error('user_type') is-invalid @enderror" required>
-                                        <option value="">-- Select User Type --</option>
-                                        <option value="admin" {{ old('user_type') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                        <option value="teacher" {{ old('user_type') == 'teacher' ? 'selected' : '' }}>Teacher</option>
-                                        <option value="parent" {{ old('user_type') == 'parent' ? 'selected' : '' }}>Parent</option>
-                                    </select>
-                                    @error('user_type')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
+                                    <input type="hidden" name="user_type" value="admin">
                                 </div>
 
                                 <!-- Submit Button -->
@@ -131,9 +120,6 @@
                                 <a href="/" class="btn btn-secondary">Cancel</a>
 
                                 </div>
-
-
-
                             </form>
                         </div>
                     </div>

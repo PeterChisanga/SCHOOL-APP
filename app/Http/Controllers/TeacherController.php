@@ -10,10 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 
-class TeacherController extends Controller
-{
-    public function index()
-    {
+class TeacherController extends Controller {
+    public function index() {
         $schoolId = Auth::user()->school_id;
         $teachers = Teacher::where('school_id', $schoolId)->get();
 
