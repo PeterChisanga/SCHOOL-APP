@@ -759,11 +759,13 @@ h3 {
     height: 50vh;
     width: 100%;
     background-image: linear-gradient(rgba(4, 9, 30, 0.5), rgba(4, 9, 30, 0.5)),
-        url("images/background-bb.jpg");
+        url("images/e-school-boy4-copy.jpg");
     background-position: center;
     background-size: cover;
     text-align: center;
     color: #fff;
+    height: 50vh; /* Fallback for older browsers */
+    aspect-ratio: 16 / 9;
 }
 
 .sub-header h1 {
@@ -880,6 +882,10 @@ h3 {
 @media (max-width: 700px) {
     .sub-header h1 {
         font-size: 24px;
+    }
+
+    .sub-header {
+        height: 50vh; /* Override aspect-ratio if needed */
     }
 
     .about-col h1 {
