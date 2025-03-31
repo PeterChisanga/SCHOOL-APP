@@ -21,7 +21,7 @@
   <body>
     <section class="sub-header">
       <nav>
-        <a href="/"><img src="images/logo.jpg" alt="" /></a>
+        <a href="/"><img src="images/logo_school.png" alt="" /></a>
         <div class="nav-links" id="navLinks">
           <i class="fa fa-times" onclick="hideMenu()"></i>
           <ul>

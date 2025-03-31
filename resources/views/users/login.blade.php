@@ -3,12 +3,12 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Create Account</title>
+        <title>Login</title>
         <!-- Google Font: Source Sans Pro -->
        <link rel="stylesheet" href="style.css" />
 
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-        <!-- Font Awesome -->
+
         <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free/css/all.min.css') }}">
         <!-- Ionicons -->
         <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css')">
@@ -28,11 +28,20 @@
         <!-- summernote -->
         <link rel="stylesheet" href="{{ asset('plugins/summernote/summernote-bs4.min.css') }}">
 
+        <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@600&family=Poppins:wght@100;200;300;400;600;700&display=swap"
+        rel="stylesheet"
+        />
+        <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.css"
+        />
+
     </head>
     <body>
         <section class="sub-header">
             <nav>
-                <a href="/"><img src="images/logo.jpg" alt="" /></a>
+                <a href="/"><img src="images/logo_school.png" alt="" /></a>
                 <div class="nav-links" id="navLinks">
                 <i class="fa fa-times" onclick="hideMenu()"></i>
                 <ul>
@@ -103,18 +112,8 @@
             </div>
         </div>
 
-        <!-- -------------- Footer -------------------- -->
-
-        <section class="footer">
-        <div class="icons">
-            <i class="fa fa-facebook"></i>
-            <i class="fa fa-twitter"></i>
-            <i class="fa fa-instagram"></i>
-            <i class="fa fa-linkedin"></i>
-        </div>
-        <p>Made by PCM</p>
-        <p></p>
-        </section>
+         <!-- ------------ footer ---------- -->
+        @include('footer')
 
         <!-- -------JavaScript for toggle Menu------ -->
         <script>
@@ -126,6 +125,7 @@
             navLinks.style.right = "-200px";
         }
         </script>
+
     </body>
 
     <script src="plugins/jquery/jquery.min.js"></script>

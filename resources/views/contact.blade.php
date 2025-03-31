@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('images/logo_school.png') }}" type="image/x-icon">
     <title>E-School Zambia Contact</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,7 +22,7 @@
   <body>
     <section class="sub-header">
       <nav>
-        <a href="/"><img src="images/logo.jpg" alt="" /></a>
+        <a href="/"><img src="images/logo_school.png" alt="" /></a>
         <div class="nav-links" id="navLinks">
           <i class="fa fa-times" onclick="hideMenu()"></i>
           <ul>

@@ -43,6 +43,16 @@
                                 </div>
                             @endif
 
+                            @if($errors->any())
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
                             <form method="POST" action="{{ route('users.store') }}">
                                 @csrf
 
@@ -70,8 +80,8 @@
 
                                 <!-- Email -->
                                 <div class="form-group mb-3">
-                                    <label for="email">{{ __('Email') }}</label>
-                                    <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required>
+                                    <label for="email">{{ __('Email (Optional)') }}</label>
+                                    <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
                                     @error('email')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -93,7 +103,12 @@
                                 <!-- Confirm Password -->
                                 <div class="form-group mb-3">
                                     <label for="password_confirmation">{{ __('Confirm Password') }}</label>
-                                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" required>
+                                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control @error('password_confirmation') is-invalid @enderror" required>
+                                    @error('password_confirmation')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
 
                                 <!-- Phone Number -->
@@ -109,7 +124,14 @@
 
                                 <!-- User Type -->
                                 <div class="form-group mb-3">
-                                    <input type="hidden" name="user_type" value="admin">
+                                    <label for="user_type">{{ __('User Type') }}</label>
+                                    <input type="hidden" id="user_type" name="user_type" value="admin" class="form-control @error('user_type') is-invalid @enderror">
+                                    <span class="form-text text-muted">Default: Admin</span>
+                                    @error('user_type')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
 
                                 <!-- Submit Button -->
@@ -117,8 +139,7 @@
                                     <button type="submit" class="btn btn-primary">
                                         {{ __('Create Account') }}
                                     </button>
-                                <a href="/" class="btn btn-secondary">Cancel</a>
-
+                                    <a href="/" class="btn btn-secondary">Cancel</a>
                                 </div>
                             </form>
                         </div>

@@ -75,7 +75,15 @@ Route::middleware(['auth'])->group(function () {
 
 Route::group(['middleware' => 'admin'], function() {
     Route::get('/admin/dashboard', [UserController::class, 'adminDashboard'])->name('admin.dashboard');
-    Route::resource('teachers', TeacherController::class);
+    // Route::resource('teachers', TeacherController::class);
+    Route::get('teachers', [TeacherController::class, 'index'])->name('teachers.index');
+    Route::get('teachers/create', [TeacherController::class, 'create'])->name('teachers.create');
+    Route::post('teachers', [TeacherController::class, 'store'])->name('teachers.store');
+    Route::get('teachers/{teacher}', [TeacherController::class, 'show'])->name('teachers.show');
+    Route::get('teachers/{teacher}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
+    Route::put('teachers/{teacher}', [TeacherController::class, 'update'])->name('teachers.update');
+    Route::delete('teachers/{teacher}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
+
     Route::resource('secretaries', SecretaryController::class);
     Route::resource('subjects', SubjectController::class);
     Route::resource('expenses', ExpenseController::class);

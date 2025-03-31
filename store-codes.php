@@ -123,3 +123,6 @@ These tests will help identify potential issues before deployment, ensuring the 
 
 </div>
 @endsection
+
+
+<!-- Teacher Controller  -->

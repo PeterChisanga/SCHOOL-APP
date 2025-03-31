@@ -5,79 +5,108 @@ use App\Models\User;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Exception;
 
 class SchoolController extends Controller
 {
-    public function create()
-    {
-        return view('schools.create');
+    public function create() {
+        try {
+            return view('schools.create');
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Something went wrong while loading the school creation form.');
+        }
     }
 
-    public function store(Request $request)
-    {
-        $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-        ]);
+    public function store(Request $request) {
+        try {
+            $this->validate($request, [
+                'name' => 'required|string|max:255',
+                'address' => 'required|string|max:255',
+            ]);
 
-        $userId = Auth::id();
+            $userId = Auth::id();
 
-        $schoolData = $request->all();
-        $schoolData['owner_id'] = $userId;
+            $schoolData = $request->all();
+            $schoolData['owner_id'] = $userId;
 
-        $school = School::create($schoolData);
+            $school = School::create($schoolData);
 
-        $user = User::find($userId);
-        $user->school_id = $school->id;
-        $user->save();
+            $user = User::find($userId);
+            $user->school_id = $school->id;
+            $user->save();
 
-        return redirect()->route('admin.dashboard')
-            ->with('success', 'School registered successfully!');
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'School registered successfully!');
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (Exception $e) {
+            \Log::error('Error storing school: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to register school: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function show() {
-        $schoolId = Auth::user()->school_id;
-        $school = School::find($schoolId);
-        $school->load('users');
+        try {
+            $schoolId = Auth::user()->school_id;
+            $school = School::find($schoolId);
+            $school->load('users');
 
-        return view('schools.show', compact('school'));
+            return view('schools.show', compact('school'));
+        } catch (Exception $e) {
+            \Log::error('Error showing school: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to load school details.');
+        }
     }
 
-    public function edit(School $school)
-    {
-        return view('schools.edit', compact('school'));
+    public function edit(School $school) {
+        try {
+            return view('schools.edit', compact('school'));
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Something went wrong while loading the school edit form.');
+        }
     }
 
     public function update(Request $request, School $school) {
-        $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            //  'photo' => 'nullable|image|max:2048',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        try {
+            $this->validate($request, [
+                'name' => 'required|string|max:255',
+                'address' => 'required|string|max:255',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
 
-        if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($school->photo) {
-                \Storage::disk('public')->delete($school->photo);
+            if ($request->hasFile('photo')) {
+                // Delete old photo if exists
+                if ($school->photo) {
+                    \Storage::disk('public')->delete($school->photo);
+                }
+
+                // Store the new photo
+                $photoPath = $request->file('photo')->store('school_logos', 'public');
+                $school->photo = $photoPath;
             }
 
-            // Store the new photo
-            $photoPath = $request->file('photo')->store('school_logos', 'public');
-            $school->photo = $photoPath;
-        }
+            $school->update($request->except('photo'));
 
-        $school->update($request->except('photo'));
-      
-        return redirect()->route('schools.show', $school->id)
-            ->with('success', 'School updated successfully!');
+            return redirect()->route('schools.show', $school->id)
+                ->with('success', 'School updated successfully!');
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (Exception $e) {
+            \Log::error('Error updating school: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update school: ' . $e->getMessage())->withInput();
+        }
     }
 
-    public function destroy(School $school)
-    {
-        $school->delete();
+    public function destroy(School $school) {
+        try {
+            $school->delete();
 
-        return redirect()->route('schools.index')
-            ->with('success', 'School deleted successfully!');
+            return redirect()->route('schools.index')
+                ->with('success', 'School deleted successfully!');
+        } catch (Exception $e) {
+            \Log::error('Error deleting school: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to delete school.');
+        }
     }
 }
