@@ -93,16 +93,18 @@ class SecretaryController extends Controller {
 
     public function update(Request $request, Secretary $secretary) {
         try {
-            $request->validate([
+            $this->validate($request, [
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
+                'email' => 'required|string|email|unique:users,email,' . $secretary->user->id,
                 'phone' => 'required|string',
-                'password' => 'nullable|string|confirmed|min:8',
+                'password' => 'nullable|string|min:8|confirmed',
             ]);
 
             $userData = [
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
+                'email' => $request->email,
                 'phone_number' => $request->phone,
             ];
 
@@ -110,9 +112,16 @@ class SecretaryController extends Controller {
                 $userData['password'] = Hash::make($request->password);
             }
 
-            $secretary->user->update($userData);
+            if ($secretary->user) {
+                $secretary->user->update($userData);
+            } else {
+                return redirect()->back()->with('error', 'Associated user not found.');
+            }
 
-            return redirect()->route('secretaries.index')->with('success', 'Secretary updated successfully.');
+            $schoolId = Auth::user()->school_id;
+            $secretary->update(['school_id' => $schoolId]);
+
+            return redirect('/secretaries')->with('success', 'Secretary updated successfully.');
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->validator)->withInput();
         } catch (Exception $e) {
