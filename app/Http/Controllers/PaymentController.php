@@ -100,8 +100,7 @@ class PaymentController extends Controller {
         return redirect()->route('payments.show',$payment)->with('success', 'Payment balance updated successfully!');
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $this->validate($request, [
             'amount' => 'required|numeric|min:0',
             'amount_paid' => 'required|numeric|min:1',
@@ -123,12 +122,16 @@ class PaymentController extends Controller {
             'term' => $request->term,
         ]);
 
+        // Generate receipt number: YEAR + TIME + SCHOOL ID (zero-padded)
+        $receiptNumber = date('YHis') . str_pad(auth()->user()->school_id, 2, '0', STR_PAD_LEFT);
+
         $transaction = PaymentTransaction::create([
             'payment_id' => $payment->id,
             'amount' => $request->amount_paid,
             'mode_of_payment' => $request->mode_of_payment ?? null,
             'date' => $request->date,
             'deposit_slip_id' => $request->deposit_slip_id ?? null,
+            'receipt_number' => $receiptNumber,
         ]);
 
         $payment->amount_paid = $request->amount_paid;
@@ -152,5 +155,4 @@ class PaymentController extends Controller {
 
         return $pdf->download('payment_receipt_' . $payment->pupil->first_name . '.pdf');
     }
-
 }

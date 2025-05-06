@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="container">
+    @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
     <h1 class="mb-4">Pupil List</h1>
 
     <form method="GET" action="{{ route('pupils.index') }}" class="mb-4">
@@ -48,9 +53,9 @@
                         <td>{{ $pupil->date_of_birth->format('Y-m-d') }}</td>
                         <td>{{ $pupil->admission_date ? $pupil->admission_date->format('Y-m-d') : '-' }}</td>
                         <td>
-                            <a href="{{ route('pupils.show', $pupil->id) }}" class="btn btn-info mb-2">View Details</a>
+                            <a href="{{ route('pupils.show', $pupil->id) }}" class="btn btn-sm btn-info mb-2">View Details</a>
 
-                            <a href="{{ route('pupils.edit', $pupil->id) }}" class="btn btn-warning mb-2">Edit</a>
+                            <a href="{{ route('pupils.edit', $pupil->id) }}" class="btn btn-sm btn-warning mb-2">Edit</a>
                         </td>
                     </tr>
                 @empty

@@ -94,7 +94,7 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'Login failed. Please try again.');
         }
     }
-
+    
     public function adminDashboard() {
         try {
             $schoolId = Auth::user()->school_id;

@@ -15,6 +15,7 @@ class PaymentTransaction extends Model
         'mode_of_payment',
         'date',
         'deposit_slip_id',
+        'receipt_number',
     ];
 
     public function payment()

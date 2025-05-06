@@ -25,4 +25,9 @@ class ClassModel extends Model
     {
         return $this->hasMany(Pupil::class, 'class_id');
     }
+
+    public function teachers() {
+        return $this->belongsToMany(Teacher::class, 'class_teacher');
+    }
+
 }

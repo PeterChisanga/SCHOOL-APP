@@ -53,7 +53,6 @@ class PupilController extends Controller {
                 'middle_name' => 'nullable|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'gender' => 'required|string|max:255',
-                'blood_group' => 'required|string|max:255',
                 'religion' => 'required|string|max:255',
                 'date_of_birth' => 'required|date',
                 'admission_date' => 'nullable|date',
@@ -136,10 +135,8 @@ class PupilController extends Controller {
     public function destroy(Pupil $pupil) {
         try {
             $pupil->delete();
-
-            return redirect()->route('pupils.index')
-                ->with('success', 'Pupil deleted successfully!');
-        } catch (Exception $e) {
+            return redirect()->route('pupils.index')->with('success', 'Pupil and associated data deleted successfully.');
+        } catch (\Exception $e) {
             \Log::error('Error deleting pupil: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to delete pupil.');
         }

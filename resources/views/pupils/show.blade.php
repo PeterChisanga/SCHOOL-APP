@@ -17,8 +17,8 @@
             <h4><strong>Gender:</strong> {{ $pupil->gender }}</h4>
             <h4><strong>Blood Group:</strong> {{ $pupil->blood_group ? $pupil->blood_group : '-' }}</h4>
             <h4><strong>Religion:</strong> {{ $pupil->religion }}</h4>
-            <h4><strong>Date of Birth:</strong> {{ $pupil->date_of_birth }}</h4>
-            <h4><strong>Admission Date:</strong> {{ $pupil->admission_date ? $pupil->admission_date : '-' }}</h4>
+            <h4><strong>Date of Birth:</strong> {{ $pupil->date_of_birth ? $pupil->date_of_birth->format('d-m-Y') : '-' }}</h4>
+            <h4><strong>Admission Date:</strong> {{ $pupil->admission_date ? $pupil->admission_date->format('d-m-Y') : '-' }}</h4>
             <h4><strong>Health Conditions:</strong> {{ $pupil->health_conditions ? $pupil->health_conditions : '-' }}</h4>
             <h4><strong>Class:</strong> {{ $pupil->class->name ?? 'N/A'  }}</h4>
         </div>
@@ -43,5 +43,10 @@
 
     <a href="{{ route('pupils.edit', $pupil->id) }}" class="btn btn-warning mt-3">Edit Pupils Details</a>
     <a href="{{ route('pupils.index') }}" class="btn btn-secondary mt-3">Back to Pupil List</a>
+    <form action="{{ route('pupils.destroy', $pupil->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this pupil and all related data?');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn mt-2 btn-danger">Delete Pupil</button>
+    </form>
 </div>
 @endsection

@@ -38,9 +38,9 @@ class Teacher extends Model
     /**
      * Get the class that the teacher is associated with.
      */
-    public function class()
-    {
-        return $this->belongsTo(ClassModel::class);
+    // In Teacher model
+    public function classes() {
+        return $this->belongsToMany(ClassModel::class, 'class_teacher', 'teacher_id', 'class_id');
     }
 
     /**

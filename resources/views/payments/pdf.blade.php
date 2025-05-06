@@ -51,7 +51,15 @@
         <h2>Payment Receipt</h2>
         <h3>For: {{ $payment->pupil->first_name }} {{ $payment->pupil->last_name }}</h3>
     </div>
-    <p><strong>Date: </strong> {{ $payment->created_at->format('d F, Y') }}</p>
+    {{-- <p><strong>Date: </strong> {{ $payment->created_at->format('d F, Y') }}</p> --}}
+    @php
+        $latestTransaction = $payment->paymenttransactions->sortByDesc('created_at')->first();
+    @endphp
+
+    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+        <p><strong>Date:</strong> {{ $payment->created_at->format('d F, Y') }}</p>
+        <p><strong>Receipt No:</strong> {{ $latestTransaction?->receipt_number ?? 'N/A' }}</p>
+    </div>
     <table>
         <tr>
             <th>Payment Type</th>

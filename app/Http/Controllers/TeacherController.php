@@ -26,7 +26,7 @@ class TeacherController extends Controller {
 
     public function show($id) {
         try {
-            $teacher = Teacher::with('school', 'class')->findOrFail($id);
+            $teacher = Teacher::with('school', 'classes')->findOrFail($id);
 
             return view('teachers.show', compact('teacher'));
         } catch (Exception $e) {
@@ -57,6 +57,8 @@ class TeacherController extends Controller {
                 'phone' => 'required|string',
                 'gender' => 'required|string',
                 'date_of_birth' => 'required|date',
+                'class_ids' => 'required|array',
+                'class_ids.*' => 'exists:classes,id',
             ]);
 
             $userData = [
@@ -73,7 +75,7 @@ class TeacherController extends Controller {
 
             $user = User::create($userData);
 
-            Teacher::create([
+            $teacher = Teacher::create([
                 'first_name' => $request->first_name,
                 'middle_name' => $request->middle_name ?? null,
                 'last_name' => $request->last_name,
@@ -87,9 +89,11 @@ class TeacherController extends Controller {
                 'qualification' => $request->qualification ?? null,
                 'salary' => $request->salary ?? null,
                 'school_id' => $schoolId,
-                'class_id' => $request->class_id ?? null,
                 'user_id' => $user->id,
             ]);
+
+            // Attach selected classes
+            $teacher->classes()->sync($request->class_ids);
 
             return redirect('/teachers')->with('success', 'Teacher registered successfully.');
         } catch (ValidationException $e) {
@@ -121,6 +125,8 @@ class TeacherController extends Controller {
                 'gender' => 'required|string',
                 'date_of_birth' => 'required|date',
                 'password' => 'nullable|string|confirmed|min:8',
+                'class_ids' => 'required|array',
+                'class_ids.*' => 'exists:classes,id',
             ]);
 
             $teacher->update([
@@ -134,7 +140,6 @@ class TeacherController extends Controller {
                 'address' => $request->address,
                 'date_of_birth' => $request->date_of_birth,
                 'admission_date' => $request->admission_date,
-                'class_id' => $request->class_id,
                 'qualification' => $request->qualification,
                 'salary' => $request->salary,
             ]);
@@ -151,6 +156,9 @@ class TeacherController extends Controller {
             }
 
             $teacher->user->update($userData);
+
+            // Update teacher's classes
+            $teacher->classes()->sync($request->class_ids);
 
             return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
         } catch (ValidationException $e) {

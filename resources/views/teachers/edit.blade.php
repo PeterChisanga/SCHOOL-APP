@@ -59,13 +59,24 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="class_id">Assign Class</label>
-                    <select class="form-control" id="class_id" name="class_id">
-                        <option value="" disabled selected>Select Class</option>
+                    <label>Assign Classes</label>
+                    <div class="row">
                         @foreach ($classes as $class)
-                            <option value="{{ $class->id }}" {{ old('class_id', $teacher->class_id) == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                        type="checkbox"
+                                        name="class_ids[]"
+                                        value="{{ $class->id }}"
+                                        id="class_{{ $class->id }}"
+                                        {{ (is_array(old('class_ids', $teacher->classes->pluck('id')->toArray())) && in_array($class->id, old('class_ids', $teacher->classes->pluck('id')->toArray()))) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="class_{{ $class->id }}">
+                                        {{ $class->name }}
+                                    </label>
+                                </div>
+                            </div>
                         @endforeach
-                    </select>
+                    </div>
                 </div>
             </div>
 

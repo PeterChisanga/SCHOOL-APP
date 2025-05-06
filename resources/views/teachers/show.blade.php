@@ -59,15 +59,21 @@
                 <td>{{ $teacher->school->name }}</td>
             </tr>
             <tr>
-                <th>Class</th>
-                <td>{{ $teacher->class ? $teacher->class->name : 'N/A' }}</td>
+                <th>Classes</th>
+                <td>
+                    @if ($teacher->classes->count() > 0)
+                        @foreach ($teacher->classes as $class)
+                            <span class="badge badge-success">{{ $class->name }}</span>
+                        @endforeach
+                    @else
+                        N/A
+                    @endif
+                </td>
             </tr>
         </table>
     </div>
 
     <a href="{{ route('teachers.index') }}" class="btn btn-primary mt-3">Back to Teachers List</a>
     <a href="{{ route('teachers.edit',$teacher->id) }}" class="btn btn-warning mt-3">Edit Teacher Information</a>
-
-
 </div>
 @endsection

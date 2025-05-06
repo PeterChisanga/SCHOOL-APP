@@ -23,6 +23,20 @@ class Pupil extends Model
         'class_id',
     ];
 
+    protected static function boot() {
+        parent::boot();
+
+        static::deleting(function ($pupil) {
+            if ($pupil->parent) {
+                $pupil->parent->delete();
+            }
+
+            $pupil->examResults()->delete();
+
+            $pupil->payments()->delete();
+        });
+    }
+
     public function parent()
     {
         return $this->hasOne(ParentModel::class);
