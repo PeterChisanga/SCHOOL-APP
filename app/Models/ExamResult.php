@@ -15,6 +15,7 @@ class ExamResult extends Model
         'end_of_term_mark',
         'subject_id',
         'pupil_id',
+        'comments',
     ];
 
     public function subject()

@@ -47,12 +47,17 @@
 
         <div class="form-group">
             <label for="mid_term_mark">Mid-Term Mark:</label>
-            <input type="number" name="mid_term_mark" id="mid_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->mid_term_mark }}" required>
+            <input type="number" name="mid_term_mark" id="mid_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->mid_term_mark }}">
         </div>
 
         <div class="form-group">
-            <label for="end_of_term_mark">End-Term Mark:</label>
-            <input type="number" name="end_of_term_mark" id="end_of_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->end_of_term_mark }}" required>
+            <label for="end_of_term_mark">End of Term Mark:</label>
+            <input type="number" name="end_of_term_mark" id="end_of_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->end_of_term_mark }}">
+        </div>
+
+        <div class="form-group">
+            <label for="comments">Comments:</label>
+            <input type="text" name="comments" id="comments" class="form-control" maxlength="255" value="{{ $examResult->comments }}" placeholder="e.g., Absent, Dropped out">
         </div>
 
         <button type="submit" class="btn btn-primary">Update Result</button>

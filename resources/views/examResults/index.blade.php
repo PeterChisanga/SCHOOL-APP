@@ -57,6 +57,7 @@
                         <th>Average</th>
                         <th>Grade</th>
                         <th>Grade Remark</th>
+                        <th>Comments</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -67,35 +68,40 @@
                             <td>{{ $result->pupil->first_name }} {{ $result->pupil->last_name }}</td>
                             <td>{{ $result->pupil->class->name }}</td>
                             <td>{{ $result->subject->name }}</td>
-                            <td>{{ $result->mid_term_mark }} %</td>
-                            <td>{{ $result->end_of_term_mark }} %</td>
+                            <td>{{ $result->mid_term_mark !== null ? $result->mid_term_mark . ' %' : '-' }}</td>
+                            <td>{{ $result->end_of_term_mark !== null ? $result->end_of_term_mark . ' %' : '-' }}</td>
                             @php
-                                $average = ($result->mid_term_mark + $result->end_of_term_mark) / 2;
-
-                                if ($average >= 75) {
-                                    $grade = 'A';
-                                    $remark = 'Excellent';
-                                } elseif ($average >= 60) {
-                                    $grade = 'B';
-                                    $remark = 'Very Good';
-                                } elseif ($average >= 50) {
-                                    $grade = 'C';
-                                    $remark = 'Good';
-                                } elseif ($average >= 45) {
-                                    $grade = 'D';
-                                    $remark = 'Satisfactory';
-                                } elseif ($average >= 40) {
-                                    $grade = 'E';
-                                    $remark = 'Pass';
-                                } else {
-                                    $grade = 'F';
-                                    $remark = 'Fail';
+                                $average = ($result->mid_term_mark !== null && $result->end_of_term_mark !== null)
+                                    ? ($result->mid_term_mark + $result->end_of_term_mark) / 2
+                                    : null;
+                                $grade = '-';
+                                $remark = '-';
+                                if ($average !== null) {
+                                    if ($average >= 75) {
+                                        $grade = 'A';
+                                        $remark = 'Excellent';
+                                    } elseif ($average >= 60) {
+                                        $grade = 'B';
+                                        $remark = 'Very Good';
+                                    } elseif ($average >= 50) {
+                                        $grade = 'C';
+                                        $remark = 'Good';
+                                    } elseif ($average >= 45) {
+                                        $grade = 'D';
+                                        $remark = 'Satisfactory';
+                                    } elseif ($average >= 40) {
+                                        $grade = 'E';
+                                        $remark = 'Pass';
+                                    } else {
+                                        $grade = 'F';
+                                        $remark = 'Fail';
+                                    }
                                 }
                             @endphp
-
-                            <td>{{ $average }} %</td>
+                            <td>{{ $average !== null ? number_format($average, 2) . ' %' : '-' }}</td>
                             <td>{{ $grade }}</td>
                             <td>{{ $remark }}</td>
+                            <td>{{ $result->comments ?? '-' }}</td>
                             <td>
                                 <a href="{{ route('examResults.show', $result->id) }}" class="btn btn-sm btn-primary mb-1">View</a>
                                 <a href="{{ route('examResults.edit', $result->id) }}" class="btn btn-sm btn-warning">Edit</a>

@@ -18,7 +18,7 @@
                     @endforeach
                 </div>
             </div>
-            <a href="{{ route('examResults.edit', $examResult->id) }}" class="btn btn-warning ml-2">Edit</a>
+            {{-- <a href="{{ route('examResults.edit', $examResult->id) }}" class="btn btn-warning ml-2">Edit</a> --}}
             <a href="{{ route('examResults.index') }}" class="btn btn-secondary ml-2">Back</a>
         </div>
     </div>
@@ -46,37 +46,44 @@
                                     <th>Average</th>
                                     <th>Grade</th>
                                     <th>Remark</th>
+                                    <th>Comments</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($resultsForTerm as $result)
                                     @php
-                                        $average = ($result->mid_term_mark + $result->end_of_term_mark) / 2;
-                                        $grade = match(true) {
-                                            $average >= 75 => 'A',
-                                            $average >= 60 => 'B',
-                                            $average >= 50 => 'C',
-                                            $average >= 45 => 'D',
-                                            $average >= 40 => 'E',
-                                            default => 'F'
-                                        };
-                                        $remark = match($grade) {
-                                            'A' => 'Excellent',
-                                            'B' => 'Very Good',
-                                            'C' => 'Good',
-                                            'D' => 'Satisfactory',
-                                            'E' => 'Pass',
-                                            'F' => 'Fail'
-                                        };
+                                        $average = ($result->mid_term_mark !== null && $result->end_of_term_mark !== null)
+                                            ? ($result->mid_term_mark + $result->end_of_term_mark) / 2
+                                            : null;
+                                        $grade = '-';
+                                        $remark = '-';
+                                        if ($average !== null) {
+                                            $grade = match(true) {
+                                                $average >= 75 => 'A',
+                                                $average >= 60 => 'B',
+                                                $average >= 50 => 'C',
+                                                $average >= 45 => 'D',
+                                                $average >= 40 => 'E',
+                                                default => 'F'
+                                            };
+                                            $remark = match($grade) {
+                                                'A' => 'Excellent',
+                                                'B' => 'Very Good',
+                                                'C' => 'Good',
+                                                'D' => 'Satisfactory',
+                                                'E' => 'Pass',
+                                                'F' => 'Fail'
+                                            };
+                                        }
                                     @endphp
-
                                     <tr>
                                         <td>{{ $result->subject->name }}</td>
-                                        <td>{{ $result->mid_term_mark }}</td>
-                                        <td>{{ $result->end_of_term_mark }}</td>
-                                        <td>{{ number_format($average, 2) }}</td>
+                                        <td>{{ $result->mid_term_mark !== null ? $result->mid_term_mark : '-' }}</td>
+                                        <td>{{ $result->end_of_term_mark !== null ? $result->end_of_term_mark : '-' }}</td>
+                                        <td>{{ $average !== null ? number_format($average, 2) : '-' }}</td>
                                         <td>{{ $grade }}</td>
                                         <td>{{ $remark }}</td>
+                                        <td>{{ $result->comments ?? '-' }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
