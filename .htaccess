@@ -1,0 +1,14 @@
+# Force all requests to the Laravel public/ directory
+# This prevents exposing project files and stops directory listings at the project root.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If the request already targets /public, serve as-is
+    RewriteCond %{REQUEST_URI} ^/public/
+    RewriteRule ^ - [L]
+
+    # Otherwise, rewrite all requests to mirror under /public
+    # e.g. / -> /public/
+    #      /css/app.css -> /public/css/app.css
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>
