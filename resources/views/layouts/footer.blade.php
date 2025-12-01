@@ -1,6 +1,6 @@
  <!-- /.content-wrapper -->
   <footer class="main-footer">
-    <strong>Copyright &copy; E-school 2024.</strong>
+    <strong>Copyright &copy; E-school 2025.</strong>
     All rights reserved.
 
   </footer>

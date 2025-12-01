@@ -1,7 +1,9 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title> Exam Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</title>
+    <title>Exam Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,7 +35,6 @@
     </style>
 </head>
 <body>
-
     <div class="center-text">
         @if($school->photo)
             <img src="{{ public_path('storage/' . $school->photo) }}" alt="School Logo" class="school-logo">
@@ -43,69 +44,86 @@
     <div class="center-text">
         <h1>{{ $school->name }}</h1>
         <p><strong>Motto:</strong> {{ $school->motto }}</p>
-        <p> {{ $pupil->school->address }}</p>
+        <p>{{ $pupil->school->address }}</p>
         <p><strong>Contact:</strong> {{ $pupil->school->phone }} | <strong>Email:</strong> {{ $pupil->school->email }}</p>
     </div>
 
     <div class="center-text" style="margin-top: 30px;">
         <h2>SCHOOL REPORT FORM</h2>
-        <h3> Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</h3>
+        <h3>Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</h3>
     </div>
-    <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term }}  {{ $pupil->examResults->where('term', $term)->last()->created_at->format('Y') }}</p>
+    <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term }} {{ $year }}  @if(auth()->user()->isPremium()) | <strong>Position in Class:</strong> {{ $position ?? '-' }} @endif</p>
 
-    {{-- <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term}} {{ $pupil->examResults->created_at }}</p> --}}
-
-    <table>
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>Mid Term Mark</th>
-                <th>End of Term Mark</th>
-                <th>Average</th>
-                <th>Grade</th>
-                <th>Remark</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $resultsForTerm = $pupil->examResults->where('term', $term);
-            @endphp
-            @foreach ($resultsForTerm as $result)
-                @php
-                    $average = ($result->mid_term_mark + $result->end_of_term_mark) / 2;
-
-                    if ($average >= 75) {
-                        $grade = 'A';
-                        $remark = 'Excellent';
-                    } elseif ($average >= 60) {
-                        $grade = 'B';
-                        $remark = 'Very Good';
-                    } elseif ($average >= 50) {
-                        $grade = 'C';
-                        $remark = 'Good';
-                    } elseif ($average >= 45) {
-                        $grade = 'D';
-                        $remark = 'Satisfactory';
-                    } elseif ($average >= 40) {
-                        $grade = 'E';
-                        $remark = 'Pass';
-                    } else {
-                        $grade = 'F';
-                        $remark = 'Fail';
-                    }
-                @endphp
-
+    @if($examResultsForTerm->isEmpty())
+        <p>No results available for {{ $term }}.</p>
+    @else
+        <table style="margin: 10px auto; font-size: 12px;">
+            <thead>
                 <tr>
-                    <td>{{ $result->subject->name }}</td>
-                    <td>{{ $result->mid_term_mark }} %</td>
-                    <td>{{ $result->end_of_term_mark }} %</td>
-                    <td>{{ $average }} %</td>
-                    <td>{{ $grade }}</td>
-                    <td>{{ $remark }}</td>
+                    <th rowspan="2">Subject</th>
+                    @if(auth()->user()->isPremium())
+                        <th colspan="3" class="text-center">Mid-Term</th>
+                        <th colspan="3" class="text-center">End of Term</th>
+                    @else
+                        <th rowspan="2">Mid Term Mark</th>
+                        <th rowspan="2">End of Term Mark</th>
+                    @endif
+                    <th rowspan="2">Average</th>
+                    <th rowspan="2">Grade</th>
+                    <th rowspan="2">Comments</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+                @if(auth()->user()->isPremium())
+                    <tr>
+                        <th>Mark</th>
+                        <th>Total Mark</th>
+                        <th>%</th>
+                        <th>Mark</th>
+                        <th>Total Mark</th>
+                        <th>%</th>
+                    </tr>
+                @else
+                    <br>
+                @endif
+            </thead>
+            <tbody>
+                @foreach ($examResultsForTerm as $result)
+                    @php
+                        $average = ($result->mid_term_mark !== null && $result->end_of_term_mark !== null)
+                            ? ($result->mid_term_mark + $result->end_of_term_mark) / 2
+                            : null;
+                        $grade = '-';
+                        if ($average !== null) {
+                            $grade = match(true) {
+                                $average >= 75 => 'A',
+                                $average >= 60 => 'B',
+                                $average >= 50 => 'C',
+                                $average >= 45 => 'D',
+                                $average >= 40 => 'E',
+                                default => 'F'
+                            };
+                        }
+                    @endphp
+                    <tr>
+                        <td>{{ $result->subject->name }}</td>
+                        @if(auth()->user()->isPremium())
+                            <td>{{ $result->mid_term_raw !== null ? number_format($result->mid_term_raw, 2) : '-' }}</td>
+                            <td>{{ $result->mid_term_max !== null ? number_format($result->mid_term_max, 2) : '-' }}</td>
+                            <td>{{ number_format($result->mid_term_mark, 2) }}%</td>
+                            <td>{{ $result->end_term_raw !== null ? number_format($result->end_term_raw, 2) : '-' }}</td>
+                            <td>{{ $result->end_term_max !== null ? number_format($result->end_term_max, 2) : '-' }}</td>
+                            <td>{{ number_format($result->end_of_term_mark, 2) }}%</td>
+                        @else
+                            <td>{{ $result->mid_term_mark !== null ? number_format($result->mid_term_mark, 2) : '-' }}%</td>
+                            <td>{{ $result->end_of_term_mark !== null ? number_format($result->end_of_term_mark, 2) : '-' }}%</td>
+                        @endif
+                        <td>{{ $average !== null ? number_format($average, 2) : '-' }}%</td>
+                        <td>{{ $grade }}</td>
+                        <td>{{ $result->comments ?? '-' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
     <h3>Grade Key</h3>
     <table border="1" cellpadding="3" cellspacing="0" width="60%" style="margin: 0 auto; font-size: 12px;">
@@ -149,10 +167,9 @@
             </tr>
         </tbody>
     </table>
-<br>
-<p>Class Teacher's Comment : ..........................................................................Signature: ..................</p>
-<br>
-<p>Head Teacher's Comment : ...........................................................................Signature: ...................</p>
-
+    <br>
+    <p>Class Teacher's Comment: ..........................................................................Signature: ..................</p>
+    <br>
+    <p>Head Teacher's Comment: ...........................................................................Signature: ...................</p>
 </body>
 </html>

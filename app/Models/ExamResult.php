@@ -10,11 +10,9 @@ class ExamResult extends Model
     use HasFactory;
 
     protected $fillable = [
-        'term',
-        'mid_term_mark',
-        'end_of_term_mark',
-        'subject_id',
-        'pupil_id',
+        'pupil_id', 'subject_id', 'term',
+        'mid_term_mark', 'end_of_term_mark',
+        'mid_term_raw', 'mid_term_max', 'end_term_raw', 'end_term_max'
     ];
 
     public function subject()

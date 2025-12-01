@@ -87,7 +87,7 @@ Route::group(['middleware' => 'admin'], function() {
     Route::resource('secretaries', SecretaryController::class);
     Route::resource('subjects', SubjectController::class);
     Route::resource('expenses', ExpenseController::class);
-    Route::resource('incomes', IncomeController::class);
+    Route::post('/expenses/export-report', [ExpenseController::class, 'exportReport'])->name('expenses.exportReport');
 
     Route::prefix('payments')->name('payments.')->group(function() {
         Route::get('/select-pupil', [PaymentController::class, 'selectPupil'])->name('select-pupil');
@@ -99,13 +99,26 @@ Route::group(['middleware' => 'admin'], function() {
         Route::post('/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('pay-balance');
         Route::get('/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('export-pdf');
     });
+
+    Route::prefix('incomes')->name('incomes.')->group(function() {
+        Route::get('/', [IncomeController::class, 'index'])->name('index');
+        Route::get('/create', [IncomeController::class, 'create'])->name('create');
+        Route::post('/', [IncomeController::class, 'store'])->name('store');
+        Route::get('/{income}/edit', [IncomeController::class, 'edit'])->name('edit');
+        Route::put('/{income}', [IncomeController::class, 'update'])->name('update');
+        Route::delete('/{income}', [IncomeController::class, 'destroy'])->name('destroy');
+
+        Route::get('/report', [IncomeController::class, 'report'])->name('report');
+    });
+
+    Route::get('incomes/financial-report', [IncomeController::class, 'financialReport'])->name('financial.report');
 });
 
 
 Route::group(['middleware' => 'secretary'], function() {
     Route::get('/secretary/dashboard', [UserController::class, 'secretaryDashboard'])->name('secretary.dashboard');
 
-     Route::prefix('payments')->name('payments.')->group(function() {
+    Route::prefix('payments')->name('payments.')->group(function() {
         Route::get('/select-pupil', [PaymentController::class, 'selectPupil'])->name('select-pupil');
         Route::get('/create/{pupil}', [PaymentController::class, 'create'])->name('create');
         Route::get('/', [PaymentController::class, 'index'])->name('index');
@@ -116,14 +129,18 @@ Route::group(['middleware' => 'secretary'], function() {
         Route::get('/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('export-pdf');
     });
 
-    // Route::get('payments/select-pupil', [PaymentController::class, 'selectPupil'])->name('payments.select-pupil');
-    // Route::get('payments/create/{pupil}', [PaymentController::class, 'create'])->name('payments.create');
-    // Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
-    // Route::get('payments/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('payments.create-pay-balance');
-    // Route::post('payments/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('payments.pay-balance');
-    // Route::get('payments/', [PaymentController::class, 'index'])->name('payments.index');
-    // Route::post('payments/', [PaymentController::class, 'store'])->name('payments.store');
-    // Route::get('payments/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('payments.export-pdf');
+    Route::prefix('incomes')->name('incomes.')->group(function() {
+        Route::get('/', [IncomeController::class, 'index'])->name('index');
+        Route::get('/create', [IncomeController::class, 'create'])->name('create');
+        Route::post('/', [IncomeController::class, 'store'])->name('store');
+        Route::get('/{income}/edit', [IncomeController::class, 'edit'])->name('edit');
+        Route::put('/{income}', [IncomeController::class, 'update'])->name('update');
+        Route::delete('/{income}', [IncomeController::class, 'destroy'])->name('destroy');
+
+        Route::get('/report', [IncomeController::class, 'report'])->name('report');
+    });
+
+    Route::get('incomes/financial-report', [IncomeController::class, 'financialReport'])->name('financial.report');
 });
 
 Route::group(['middleware' => 'teacher'], function() {
@@ -142,3 +159,13 @@ Route::group(['middleware' => 'student'], function() {
         return view('not-yet-implemented');
     });
 });
+
+Route::middleware(['auth', 'premium'])->group(function () {
+    Route::get('/exam-results/positions', [ExamResultController::class, 'positions'])->name('examResults.positions');
+    // Route::get('/expenses/delete/{id}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+});
+
+Route::get('/subscription/upgrade', function () {
+    return view('subscription.upgrade');
+})->name('subscription.upgrade');

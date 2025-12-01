@@ -27,6 +27,16 @@
             </div>
 
             <div class="form-group mb-3">
+                <label>Term</label>
+                <select name="term" class="form-control" required>
+                    <option value="">Select Term</option>
+                    <option value="term 1" {{ old('term', $expense->term ?? '') == 'term 1' ? 'selected' : '' }}>Term 1</option>
+                    <option value="term 2" {{ old('term', $expense->term ?? '') == 'term 2' ? 'selected' : '' }}>Term 2</option>
+                    <option value="term 3" {{ old('term', $expense->term ?? '') == 'term 3' ? 'selected' : '' }}>Term 3</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
                 <label for="date">Date</label>
                 <input type="date" name="date" id="date" class="form-control" value="{{ old('date') }}" required>
             </div>
