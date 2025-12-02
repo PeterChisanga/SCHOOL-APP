@@ -14,6 +14,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
+use App\Http\Controllers\ResultsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -169,3 +170,5 @@ Route::middleware(['auth', 'premium'])->group(function () {
 Route::get('/subscription/upgrade', function () {
     return view('subscription.upgrade');
 })->name('subscription.upgrade');
+
+Route::get('/results/send-sms/{studentId}', [ResultsController::class, 'sendResults']);
