@@ -5,6 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Exam Results</h1>
         <a href="{{ route('examResults.create') }}" class="btn btn-primary">Enter New Results</a>
+        <a href="{{ route('results.sendSms') }}" class="btn btn-secondary">Send Resuults</a>
     </div>
 
     <!-- Filter Form -->

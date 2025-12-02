@@ -171,4 +171,4 @@ Route::get('/subscription/upgrade', function () {
     return view('subscription.upgrade');
 })->name('subscription.upgrade');
 
-Route::get('/results/send-sms/{studentId}', [ResultsController::class, 'sendResults']);
+Route::get('/results/send-sms/', [ResultsController::class, 'sendResults']) ->name('results.sendSms');

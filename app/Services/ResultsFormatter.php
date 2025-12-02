@@ -9,7 +9,7 @@ class ResultsFormatter
     public function formatResults($studentId)
     {
         $results = ExamResult::with('subject')
-            ->where('student_id', $studentId)
+            ->where('pupil_id', $studentId)
             ->get();
 
         if ($results->isEmpty()) {
