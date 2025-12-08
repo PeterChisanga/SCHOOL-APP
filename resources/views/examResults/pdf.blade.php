@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -42,19 +44,29 @@
     <div class="center-text">
         <h1>{{ $school->name }}</h1>
         <p><strong>Motto:</strong> {{ $school->motto }}</p>
+<<<<<<< HEAD
         <p>{{ $school->address }}</p>
         <p><strong>Contact:</strong> {{ $school->phone }} | <strong>Email:</strong> {{ $school->email }}</p>
+=======
+        <p>{{ $pupil->school->address }}</p>
+        <p><strong>Contact:</strong> {{ $pupil->school->phone }} | <strong>Email:</strong> {{ $pupil->school->email }}</p>
+>>>>>>> c40cc7676638689210983577320393970de9170c
     </div>
 
     <div class="center-text" style="margin-top: 30px;">
         <h2>SCHOOL REPORT FORM</h2>
         <h3>Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</h3>
     </div>
+<<<<<<< HEAD
     <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term }} {{ $year }}</p>
+=======
+    <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term }} {{ $year }}  @if(auth()->user()->isPremium()) | <strong>Position in Class:</strong> {{ $position ?? '-' }} @endif</p>
+>>>>>>> c40cc7676638689210983577320393970de9170c
 
     @if($examResultsForTerm->isEmpty())
         <p>No results available for {{ $term }}.</p>
     @else
+<<<<<<< HEAD
         <table>
             <thead>
                 <tr>
@@ -66,6 +78,35 @@
                     <th>Remark</th>
                     <th>Comments</th>
                 </tr>
+=======
+        <table style="margin: 10px auto; font-size: 12px;">
+            <thead>
+                <tr>
+                    <th rowspan="2">Subject</th>
+                    @if(auth()->user()->isPremium())
+                        <th colspan="3" class="text-center">Mid-Term</th>
+                        <th colspan="3" class="text-center">End of Term</th>
+                    @else
+                        <th rowspan="2">Mid Term Mark</th>
+                        <th rowspan="2">End of Term Mark</th>
+                    @endif
+                    <th rowspan="2">Average</th>
+                    <th rowspan="2">Grade</th>
+                    <th rowspan="2">Comments</th>
+                </tr>
+                @if(auth()->user()->isPremium())
+                    <tr>
+                        <th>Mark</th>
+                        <th>Total Mark</th>
+                        <th>%</th>
+                        <th>Mark</th>
+                        <th>Total Mark</th>
+                        <th>%</th>
+                    </tr>
+                @else
+                    <br>
+                @endif
+>>>>>>> c40cc7676638689210983577320393970de9170c
             </thead>
             <tbody>
                 @foreach ($examResultsForTerm as $result)
@@ -74,6 +115,7 @@
                             ? ($result->mid_term_mark + $result->end_of_term_mark) / 2
                             : null;
                         $grade = '-';
+<<<<<<< HEAD
                         $remark = '-';
                         if ($average !== null) {
                             if ($average >= 75) {
@@ -95,15 +137,42 @@
                                 $grade = 'F';
                                 $remark = 'Fail';
                             }
+=======
+                        if ($average !== null) {
+                            $grade = match(true) {
+                                $average >= 75 => 'A',
+                                $average >= 60 => 'B',
+                                $average >= 50 => 'C',
+                                $average >= 45 => 'D',
+                                $average >= 40 => 'E',
+                                default => 'F'
+                            };
+>>>>>>> c40cc7676638689210983577320393970de9170c
                         }
                     @endphp
                     <tr>
                         <td>{{ $result->subject->name }}</td>
+<<<<<<< HEAD
                         <td>{{ $result->mid_term_mark !== null ? $result->mid_term_mark . ' %' : '-' }}</td>
                         <td>{{ $result->end_of_term_mark !== null ? $result->end_of_term_mark . ' %' : '-' }}</td>
                         <td>{{ $average !== null ? number_format($average, 2) . ' %' : '-' }}</td>
                         <td>{{ $grade }}</td>
                         <td>{{ $remark }}</td>
+=======
+                        @if(auth()->user()->isPremium())
+                            <td>{{ $result->mid_term_raw !== null ? number_format($result->mid_term_raw, 2) : '-' }}</td>
+                            <td>{{ $result->mid_term_max !== null ? number_format($result->mid_term_max, 2) : '-' }}</td>
+                            <td>{{ number_format($result->mid_term_mark, 2) }}%</td>
+                            <td>{{ $result->end_term_raw !== null ? number_format($result->end_term_raw, 2) : '-' }}</td>
+                            <td>{{ $result->end_term_max !== null ? number_format($result->end_term_max, 2) : '-' }}</td>
+                            <td>{{ number_format($result->end_of_term_mark, 2) }}%</td>
+                        @else
+                            <td>{{ $result->mid_term_mark !== null ? number_format($result->mid_term_mark, 2) : '-' }}%</td>
+                            <td>{{ $result->end_of_term_mark !== null ? number_format($result->end_of_term_mark, 2) : '-' }}%</td>
+                        @endif
+                        <td>{{ $average !== null ? number_format($average, 2) : '-' }}%</td>
+                        <td>{{ $grade }}</td>
+>>>>>>> c40cc7676638689210983577320393970de9170c
                         <td>{{ $result->comments ?? '-' }}</td>
                     </tr>
                 @endforeach

@@ -17,6 +17,12 @@ class School extends Model
         'phone',
         'photo',
         'owner_id',
+        'is_premium',
+        'subscription_expires_at',
+    ];
+
+    protected $casts = [
+        'subscription_expires_at' => 'date',
     ];
 
     public function owner()
@@ -54,4 +60,8 @@ class School extends Model
         return $this->hasMany(Expense::class);
     }
 
+    public function isPremium()
+    {
+        return $this->is_premium && (!$this->subscription_expires_at || $this->subscription_expires_at > now());
+    }
 }

@@ -13,6 +13,12 @@ class Expense extends Model
         'amount',
         'date',
         'school_id',
+        'term',
+    ];
+
+    protected $casts = [
+        'date' => 'date',       
+        'amount' => 'decimal:2',
     ];
 
     public function school()

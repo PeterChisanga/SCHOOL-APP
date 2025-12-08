@@ -22,20 +22,20 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function school()
-    {
+    public function school() {
         return $this->belongsTo(School::class);
     }
 
-    public function ownedSchool()
-    {
+    public function ownedSchool() {
         return $this->hasOne(School::class, 'owner_id');
     }
 
-    public function teacher()
-    {
+    public function teacher() {
         return $this->hasMany(Teacher::class);
     }
 
+    public function isPremium() {
+        return $this->school ? $this->school->isPremium() : false;
+    }
 }
 

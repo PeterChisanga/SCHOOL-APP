@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
 use Exception;
 
@@ -67,6 +68,37 @@ class SchoolController extends Controller
         }
     }
 
+    // public function update(Request $request, School $school) {
+    //     try {
+    //         $this->validate($request, [
+    //             'name' => 'required|string|max:255',
+    //             'address' => 'required|string|max:255',
+    //             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    //         ]);
+
+    //         if ($request->hasFile('photo')) {
+    //             // Delete old photo if exists
+    //             if ($school->photo) {
+    //                 \Storage::disk('public')->delete($school->photo);
+    //             }
+
+    //             // Store the new photo
+    //             $photoPath = $request->file('photo')->store('school_logos', 'public');
+    //             $school->photo = $photoPath;
+    //         }
+
+    //         $school->update($request->except('photo'));
+
+    //         return redirect()->route('schools.show', $school->id)
+    //             ->with('success', 'School updated successfully!');
+    //     } catch (ValidationException $e) {
+    //         return redirect()->back()->withErrors($e->validator)->withInput();
+    //     } catch (Exception $e) {
+    //         \Log::error('Error updating school: ' . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Failed to update school: ' . $e->getMessage())->withInput();
+    //     }
+    // }
+
     public function update(Request $request, School $school) {
         try {
             $this->validate($request, [
@@ -76,13 +108,20 @@ class SchoolController extends Controller
             ]);
 
             if ($request->hasFile('photo')) {
-                // Delete old photo if exists
+                // Delete old photo
                 if ($school->photo) {
                     \Storage::disk('public')->delete($school->photo);
+                    @unlink(public_path('storage/' . $school->photo)); // Delete from public too
                 }
 
-                // Store the new photo
+                // Store in storage/app/public (Laravel way)
                 $photoPath = $request->file('photo')->store('school_logos', 'public');
+
+                // ALSO COPY TO public/storage (Windows fix)
+                $realPath = public_path('storage/' . $photoPath);
+                \File::makeDirectory(dirname($realPath), 0755, true, true);
+                copy(storage_path('app/public/' . $photoPath), $realPath);
+
                 $school->photo = $photoPath;
             }
 
@@ -90,11 +129,9 @@ class SchoolController extends Controller
 
             return redirect()->route('schools.show', $school->id)
                 ->with('success', 'School updated successfully!');
-        } catch (ValidationException $e) {
-            return redirect()->back()->withErrors($e->validator)->withInput();
-        } catch (Exception $e) {
-            \Log::error('Error updating school: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to update school: ' . $e->getMessage())->withInput();
+        } catch (\Exception $e) {
+            \Log::error('School update error: ' . $e->getMessage());
+            return back()->with('error', 'Failed: ' . $e->getMessage());
         }
     }
 

@@ -70,14 +70,12 @@ class PaymentController extends Controller {
         return view('payments.show', compact('payment'));
     }
 
-    public function createPayBalance(Payment $payment)
-    {
+    public function createPayBalance(Payment $payment) {
         $payment = Payment::with('paymenttransactions', 'pupil')->findOrFail($payment->id);
         return view('payments.pay-balance', compact('payment'));
     }
 
-    public function payBalance(Request $request, Payment $payment)
-    {
+    public function payBalance(Request $request, Payment $payment) {
         $this->validate($request, [
             'amount_paid' => 'required|numeric|min:1',
             'mode_of_payment' => 'required|string',
