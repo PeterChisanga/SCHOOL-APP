@@ -83,13 +83,6 @@
             <h4>Enter Results for {{ $selectedPupil->first_name }} {{ $selectedPupil->last_name }}</h4>
             <table class="table">
                 <thead>
-<<<<<<< HEAD
-                    <tr>
-                        <th>Pupil Name</th>
-                        <th>Mid-Term Mark</th>
-                        <th>End of Term Mark</th>
-                        <th>Comments</th>
-=======
                     @if (Auth::user()->isPremium())
                         <tr>
                             <th colspan="3" class="text-center">Mid-Term</th>
@@ -110,22 +103,11 @@
                             <th>End of Term Mark</th>
                         @endif
                         <th>Comment</th>
->>>>>>> c40cc7676638689210983577320393970de9170c
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>{{ $selectedPupil->first_name }} {{ $selectedPupil->last_name }}</td>
-<<<<<<< HEAD
-                        <td>
-                            <input type="number" name="single_pupil[mid_term_mark]" class="form-control" min="0" max="100">
-                        </td>
-                        <td>
-                            <input type="number" name="single_pupil[end_of_term_mark]" class="form-control" min="0" max="100">
-                        </td>
-                        <td>
-                            <input type="text" name="single_pupil[comments]" class="form-control" maxlength="255" placeholder="e.g., Absent, Sick, Changed school">
-=======
                         @if (Auth::user()->isPremium())
                             <td>
                                 <input type="number" name="single_pupil[mid_term_raw]" class="form-control raw-mark" min="0" step="0.01" required data-type="mid_term">
@@ -163,7 +145,6 @@
                                 <option value="Sick">Sick</option>
                                 <option value="Changed school">Changed school</option>
                             </select>
->>>>>>> c40cc7676638689210983577320393970de9170c
                             <input type="hidden" name="single_pupil[pupil_id]" value="{{ $pupilId }}">
                         </td>
                     </tr>
@@ -173,13 +154,6 @@
             <h4>Enter Results for Class</h4>
             <table class="table">
                 <thead>
-<<<<<<< HEAD
-                    <tr>
-                        <th>Pupil Name</th>
-                        <th>Mid-Term Mark</th>
-                        <th>End of Term Mark</th>
-                        <th>Comments</th>
-=======
                     @if (Auth::user()->isPremium())
                         <tr>
                             <th colspan="3" class="text-center">Mid-Term</th>
@@ -200,23 +174,12 @@
                             <th>End of Term Mark</th>
                         @endif
                         <th>Comment</th>
->>>>>>> c40cc7676638689210983577320393970de9170c
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($classPupils as $pupil)
                         <tr>
                             <td>{{ $pupil->first_name }} {{ $pupil->last_name }}</td>
-<<<<<<< HEAD
-                            <td>
-                                <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_mark]" class="form-control" min="0" max="100">
-                            </td>
-                            <td>
-                                <input type="number" name="pupil_results[{{ $pupil->id }}][end_of_term_mark]" class="form-control" min="0" max="100">
-                            </td>
-                            <td>
-                                <input type="text" name="pupil_results[{{ $pupil->id }}][comments]" class="form-control" maxlength="255" placeholder="e.g., Absent, Sick, Changed school">
-=======
                             @if (Auth::user()->isPremium())
                                 <td>
                                     <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_raw]" class="form-control raw-mark" min="0" step="0.01" required data-type="mid_term_{{ $pupil->id }}">
@@ -254,7 +217,6 @@
                                     <option value="Sick">Sick</option>
                                     <option value="Changed school">Changed school</option>
                                 </select>
->>>>>>> c40cc7676638689210983577320393970de9170c
                             </td>
                         </tr>
                     @endforeach
@@ -274,8 +236,6 @@
         document.getElementById('class_select').style.display = entryType === 'bulk' ? 'block' : 'none';
         document.getElementById('pupil_select').style.display = entryType === 'single' ? 'block' : 'none';
     }
-<<<<<<< HEAD
-=======
 
     @if (Auth::user()->isPremium())
     document.addEventListener('DOMContentLoaded', function () {
@@ -313,6 +273,5 @@
         rawMarkInputs.forEach(input => input.addEventListener('input', () => calculatePercentage(input)));
     });
     @endif
->>>>>>> c40cc7676638689210983577320393970de9170c
 </script>
 @endsection

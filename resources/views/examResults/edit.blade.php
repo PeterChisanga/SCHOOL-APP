@@ -45,21 +45,6 @@
             </select>
         </div>
 
-<<<<<<< HEAD
-        <div class="form-group">
-            <label for="mid_term_mark">Mid-Term Mark:</label>
-            <input type="number" name="mid_term_mark" id="mid_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->mid_term_mark }}">
-        </div>
-
-        <div class="form-group">
-            <label for="end_of_term_mark">End of Term Mark:</label>
-            <input type="number" name="end_of_term_mark" id="end_of_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->end_of_term_mark }}">
-        </div>
-
-        <div class="form-group">
-            <label for="comments">Comments:</label>
-            <input type="text" name="comments" id="comments" class="form-control" maxlength="255" value="{{ $examResult->comments }}" placeholder="e.g., Absent, Dropped out">
-=======
         <table class="table">
             <thead>
                 <tr>
@@ -124,7 +109,6 @@
                 <option value="Sick" {{ $examResult->comments == 'Sick' ? 'selected' : '' }}>Sick</option>
                 <option value="Changed school" {{ $examResult->comments == 'Changed school' ? 'selected' : '' }}>Changed school</option>
             </select>
->>>>>>> c40cc7676638689210983577320393970de9170c
         </div>
 
         <button type="submit" class="btn btn-primary">Update Result</button>
