@@ -42,7 +42,7 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <!-- Dashboard -->
-            <li class="nav-item menu-open">
+            {{-- <li class="nav-item menu-open">
                 <a href="{{ route('admin.dashboard') }}" class="nav-link active">
                     <i class="nav-icon fas fa-tachometer-alt"></i>
                     @if (Auth::user()->user_type=='admin')
@@ -52,6 +52,16 @@
                     @else
                     <p>Secretary Dashboard</p>
                     @endif
+                </a>
+            </li> --}}
+
+            {{-- The routes are implemented using a helper functions (app/helpers) to direct users to their respective dashboards --}}
+            <li class="nav-item menu-open">
+                <a href="{{ route(dashboardRoute()) }}"
+                class="nav-link {{ request()->routeIs(dashboardRoute()) ? 'active' : '' }}">
+
+                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                    <p>{{ dashboardLabel() }}</p>
                 </a>
             </li>
 
@@ -91,41 +101,38 @@
                 </a>
             </li>
 
-            <!-- expenses -->
-            @if (Auth::user()->user_type=='admin')
-            <li class="nav-item">
-                <a href="{{ route('expenses.index') }}" class="nav-link">
-                    <i class="nav-icon fas fa-money-bill-wave"></i>
-                    <p>Expenses</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('incomes.index') }}" class="nav-link">
-                    <i class="nav-icon fas fa-chart-line"></i>
-                    <p>Incomes</p>
-                </a>
-            </li>
-            @endif
-
-            <!-- Fees -->
+            <!-- Financials -->
             @if (Auth::user()->user_type === 'admin' || Auth::user()->user_type === 'secretary')
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="nav-icon fas fa-dollar-sign"></i>
-                    <p>
-                        Fee Collection
-                        <i class="fas fa-angle-left right"></i>
-                    </p>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="{{ route('payments.index') }}" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Fee Collections</p>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+                <!-- expenses -->
+                <li class="nav-item">
+                    <a href="{{ route('expenses.index') }}" class="nav-link">
+                        <i class="nav-icon fas fa-money-bill-wave"></i>
+                        <p>Expenses</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('incomes.index') }}" class="nav-link">
+                        <i class="nav-icon fas fa-chart-line"></i>
+                        <p>Incomes</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-dollar-sign"></i>
+                        <p>
+                            Fee Collection
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('payments.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Fee Collections</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             @endif
 
             <!-- Academics -->
@@ -138,14 +145,12 @@
                     </p>
                 </a>
                 <ul class="nav nav-treeview">
-                    @if (Auth::user()->user_type=='admin')
                     <li class="nav-item">
                         <a href="{{ route('subjects.index') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Subjects</p>
                         </a>
                     </li>
-                    @endif
                     <li class="nav-item">
                         <a href="{{ route('classes.index') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>

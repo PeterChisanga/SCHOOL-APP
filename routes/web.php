@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('examResults', ExamController::class);
     Route::get('/examResults/exportPdf/{pupil}/{term}', [ExamController::class, 'exportPdf'])->name('examResults.exportPdf');
 
+    Route::resource('subjects', SubjectController::class);
     Route::resource('classes', ClassController::class);
     Route::get('classes/exportPdf/{class}', [ClassController::class, 'exportPdf'])->name('classes.exportPdf');
     Route::resource('schools', SchoolController::class);
@@ -86,7 +87,6 @@ Route::group(['middleware' => 'admin'], function() {
     Route::delete('teachers/{teacher}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
 
     Route::resource('secretaries', SecretaryController::class);
-    Route::resource('subjects', SubjectController::class);
     Route::resource('expenses', ExpenseController::class);
     Route::post('/expenses/export-report', [ExpenseController::class, 'exportReport'])->name('expenses.exportReport');
 
@@ -130,6 +130,7 @@ Route::group(['middleware' => 'secretary'], function() {
         Route::get('/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('export-pdf');
     });
 
+    Route::resource('expenses', ExpenseController::class);
     Route::prefix('incomes')->name('incomes.')->group(function() {
         Route::get('/', [IncomeController::class, 'index'])->name('index');
         Route::get('/create', [IncomeController::class, 'create'])->name('create');
