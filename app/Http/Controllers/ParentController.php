@@ -36,8 +36,8 @@ class ParentController extends Controller
             $this->validate($request, [
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
-                'phone' => 'required|string|max:20|unique:parents,phone',
-                'email' => 'nullable|string|email|max:255|unique:parents,email',
+                'phone' => 'required|string|max:20',
+                'email' => 'nullable|string|email|max:255',
                 'address' => 'nullable|string|max:255',
                 'pupil_id' => 'required|exists:pupils,id',
             ]);
