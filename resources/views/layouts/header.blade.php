@@ -42,19 +42,6 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <!-- Dashboard -->
-            {{-- <li class="nav-item menu-open">
-                <a href="{{ route('admin.dashboard') }}" class="nav-link active">
-                    <i class="nav-icon fas fa-tachometer-alt"></i>
-                    @if (Auth::user()->user_type=='admin')
-                    <p>Admin Dashboard</p>
-                    @elseif (Auth::user()->user_type=='teacher')
-                    <p>Teacher Dashboard</p>
-                    @else
-                    <p>Secretary Dashboard</p>
-                    @endif
-                </a>
-            </li> --}}
-
             {{-- The routes are implemented using a helper functions (app/helpers) to direct users to their respective dashboards --}}
             <li class="nav-item menu-open">
                 <a href="{{ route(dashboardRoute()) }}"
@@ -114,6 +101,15 @@
                     <a href="{{ route('incomes.index') }}" class="nav-link">
                         <i class="nav-icon fas fa-chart-line"></i>
                         <p>Incomes</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('inventory.index') }}" class="nav-link">
+                        <i class="nav-icon fas fa-warehouse"></i>
+                        <p>
+                            Inventory
+                            <span class="badge bg-warning text-dark ms-2">BETA</span>
+                        </p>
                     </a>
                 </li>
                 <li class="nav-item">

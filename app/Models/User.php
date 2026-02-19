@@ -37,5 +37,10 @@ class User extends Authenticatable
     public function isPremium() {
         return $this->school ? $this->school->isPremium() : false;
     }
+
+    public function inventoryLogs()
+    {
+        return $this->hasMany(InventoryActivityLog::class);
+    }
 }
 

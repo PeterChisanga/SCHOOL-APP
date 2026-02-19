@@ -15,6 +15,8 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\InventoryCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -165,7 +167,44 @@ Route::group(['middleware' => 'student'], function() {
 Route::middleware(['auth', 'premium'])->group(function () {
     Route::get('/exam-results/positions', [ExamResultController::class, 'positions'])->name('examResults.positions');
     // Route::get('/expenses/delete/{id}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
-    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+
+    Route::resource('inventory/categories', InventoryCategoryController::class)
+        ->names('inventory.categories');
+         // Inventory list & filtering
+
+    // Inventory CRUD
+    Route::resource('inventory', InventoryController::class);
+
+    // Stock operations
+    Route::post('inventory/{inventory}/add-stock',
+        [InventoryController::class, 'addStock'])
+        ->name('inventory.addStock');
+
+    Route::post('inventory/{inventory}/remove-stock',
+        [InventoryController::class, 'removeStock'])
+        ->name('inventory.removeStock');
+
+    Route::get('inventory/{inventory}/activity',
+        [InventoryController::class, 'activity'])
+        ->name('inventory.activity');
+
+    // Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+
+    // // Create inventory item
+    // Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
+    // Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
+
+    // // Edit & Update inventory item
+    // Route::get('/inventory/{inventory}/edit', [InventoryController::class, 'edit'])->name('inventory.edit');
+    // Route::put('/inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
+
+    // // View inventory activity log
+    // Route::get('inventory/{inventory}/activity',
+    //     [InventoryController::class, 'activity']
+    // )->name('inventory.activity');
+
+    // // Delete inventory item
+    // Route::delete('/inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
 });
 
 Route::get('/subscription/upgrade', function () {
