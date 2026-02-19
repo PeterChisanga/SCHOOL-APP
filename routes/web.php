@@ -165,7 +165,7 @@ Route::group(['middleware' => 'student'], function() {
 });
 
 Route::middleware(['auth', 'premium'])->group(function () {
-    Route::get('/exam-results/positions', [ExamResultController::class, 'positions'])->name('examResults.positions');
+    // Route::get('/exam-results/positions', [ExamResultController::class, 'positions'])->name('examResults.positions');
     // Route::get('/expenses/delete/{id}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     Route::resource('inventory/categories', InventoryCategoryController::class)
