@@ -38,25 +38,23 @@
 <body>
 
     <div class="center-text">
-    @php
-        $logoFullPath = $school->photo
-            ? public_path('storage/' . $school->photo)
-            : null;
-    @endphp
+        @php
+            $logoFullPath = $school->photo
+                ? public_path('storage/' . $school->photo)
+                : null;
+        @endphp
 
-    @if($logoFullPath && file_exists($logoFullPath))
-        <img src="{{ $logoFullPath }}"
-             alt="School Logo"
-             class="school-logo">
-    @else
-        <!-- Fallback when no logo -->
-        <div style="width:100px; height:100px; background:#f3f4f6; border:3px dashed #94a3b8; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
-            <span style="color:#64748b; font-weight:bold;">LOGO</span>
-        </div>
-    @endif
-</div>
-
-
+        @if($logoFullPath && file_exists($logoFullPath))
+            <img src="{{ $logoFullPath }}"
+                alt="School Logo"
+                class="school-logo">
+        @else
+            <!-- Fallback when no logo -->
+            <div style="width:100px; height:100px; background:#f3f4f6; border:3px dashed #94a3b8; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
+                <span style="color:#64748b; font-weight:bold;">LOGO</span>
+            </div>
+        @endif
+    </div>
 
     <div class="center-text">
         <h1>{{ $school->name }}</h1>

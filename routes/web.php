@@ -188,23 +188,15 @@ Route::middleware(['auth', 'premium'])->group(function () {
         [InventoryController::class, 'activity'])
         ->name('inventory.activity');
 
-    // Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    // Inventory reports
+    Route::get('inventory/reports/movement/pdf',
+        [InventoryController::class, 'movementReport']
+        )->name('inventory.reports.movement.pdf');
 
-    // // Create inventory item
-    // Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
-    // Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
+    Route::get('inventory/reports/summary/pdf',
+        [InventoryController::class, 'summaryReport']
+        )->name('inventory.reports.summary.pdf');
 
-    // // Edit & Update inventory item
-    // Route::get('/inventory/{inventory}/edit', [InventoryController::class, 'edit'])->name('inventory.edit');
-    // Route::put('/inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
-
-    // // View inventory activity log
-    // Route::get('inventory/{inventory}/activity',
-    //     [InventoryController::class, 'activity']
-    // )->name('inventory.activity');
-
-    // // Delete inventory item
-    // Route::delete('/inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
 });
 
 Route::get('/subscription/upgrade', function () {

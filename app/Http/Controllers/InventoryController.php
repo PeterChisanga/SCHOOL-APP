@@ -10,7 +10,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
+
+// future updates
+// Inventory Reports
+// │
+// ├── Category Report
+// ├── Low Stock Report
+// └── Printable / Exportable Version
 
 class InventoryController extends Controller
 {
@@ -299,6 +307,75 @@ class InventoryController extends Controller
 
             return redirect()->back()
                 ->with('error', 'Failed to load activity log.');
+        }
+    }
+
+    public function summaryReport()
+    {
+        try {
+            $schoolId = auth()->user()->school_id;
+            $school   = auth()->user()->school;
+
+            $inventories = Inventory::where('school_id', $schoolId)
+                ->with('category')
+                ->orderBy('item_name')
+                ->get();
+
+            $totalItems       = $inventories->count();
+            $totalQuantity    = $inventories->sum('quantity');
+            $lowStockCount    = $inventories->where('quantity', '<=', 5)->count();
+            $outOfStockCount  = $inventories->where('quantity', 0)->count();
+
+            $pdf = Pdf::loadView('inventory.reports.summary-pdf', compact(
+                'inventories',
+                'school',
+                'totalItems',
+                'totalQuantity',
+                'lowStockCount',
+                'outOfStockCount'
+            ));
+
+            return $pdf->download('Inventory_Summary_Report.pdf');
+
+        } catch (Exception $e) {
+            \Log::error('Error generating summary report: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate summary report.');
+        }
+    }
+
+    public function movementReport(Request $request) {
+        try {
+            $schoolId = auth()->user()->school_id;
+            $school   = auth()->user()->school;
+
+            $from = $request->from;
+            $to   = $request->to;
+
+            $logs = InventoryActivityLog::whereHas('inventory', function ($q) use ($schoolId) {
+                    $q->where('school_id', $schoolId);
+                })
+                ->when($from && $to, function ($q) use ($from, $to) {
+                    $q->whereBetween('created_at', [
+                        $from . ' 00:00:00',
+                        $to   . ' 23:59:59'
+                    ]);
+                })
+                ->with(['inventory', 'user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $pdf = Pdf::loadView('inventory.reports.movement-pdf', compact(
+                'logs',
+                'school',
+                'from',
+                'to'
+            ));
+
+            return $pdf->download('Stock_Movement_Report.pdf');
+
+        } catch (Exception $e) {
+            \Log::error('Error generating movement report: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate movement report.');
         }
     }
 

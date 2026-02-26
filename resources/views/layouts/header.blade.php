@@ -108,7 +108,6 @@
                         <i class="nav-icon fas fa-warehouse"></i>
                         <p>
                             Inventory
-                            <span class="badge bg-warning text-dark ms-2">BETA</span>
                         </p>
                     </a>
                 </li>

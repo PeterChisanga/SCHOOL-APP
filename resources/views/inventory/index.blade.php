@@ -14,6 +14,16 @@
         Add Inventory Item
     </a>
 
+    <button class="btn btn-warning mb-3"
+        data-bs-toggle="modal"
+        data-bs-target="#movementReportModal">
+        Download Movement Report
+    </button>
+
+    <a href="{{ route('inventory.reports.summary.pdf') }}" class="btn btn-secondary mb-3">
+        Download Summary Report
+    </a>
+
     <!-- Filter & Search -->
     <form method="GET" action="{{ route('inventory.index') }}" class="mb-3">
         <div class="row">
@@ -222,6 +232,61 @@
             </div>
         </div>
     @endforeach
+
+    <!-- Movement Report Modal -->
+    <div class="modal fade" id="movementReportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form method="GET" action="{{ route('inventory.reports.movement.pdf') }}">
+
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title">
+                            Generate Stock Movement Report
+                        </h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">From Date</label>
+                            <input type="date"
+                                name="from"
+                                class="form-control"
+                                value="{{ now()->startOfMonth()->format('Y-m-d') }}"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">To Date</label>
+                            <input type="date"
+                                name="to"
+                                class="form-control"
+                                value="{{ now()->format('Y-m-d') }}"
+                                required>
+                        </div>
+
+                        <small class="text-muted">
+                            Report will include all stock movements between selected dates.
+                        </small>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit"
+                                class="btn btn-warning">
+                            Generate Report
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
