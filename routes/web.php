@@ -15,6 +15,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
+use App\Http\Controllers\ParentPaymentController;
 
 /*
 |--------------------------------------------------------------------------

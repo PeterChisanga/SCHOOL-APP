@@ -1,3 +1,4 @@
+@auth
 <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
         <!-- Left navbar links -->
@@ -22,9 +23,6 @@
             <i class="fas fa-expand-arrows-alt"></i>
             </a>
         </li>
-
-
-
         </ul>
     </nav>
   <!-- /.navbar -->
@@ -65,11 +63,11 @@
             </li>
             @endif
 
-            {{-- seretaries --}}
+            {{-- secretaries --}}
             @if (Auth::user()->user_type=='admin')
             <li class="nav-item">
                 <a href="{{ route('secretaries.index') }}" class="nav-link">
-                    <i class="nav-icon fas  fa-user-tie"></i>
+                    <i class="nav-icon fas fa-user-tie"></i>
                     <p>Secretaries</p>
                 </a>
             </li>
@@ -91,7 +89,7 @@
                 </a>
             </li>
 
-            <!-- expenses -->
+            <!-- Expenses -->
             @if (Auth::user()->user_type=='admin')
             <li class="nav-item">
                 <a href="{{ route('expenses.index') }}" class="nav-link">
@@ -171,16 +169,10 @@
                             <p>Exam Results</p>
                         </a>
                     </li>
-                    {{-- <li class="nav-item">
-                        <a href="" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Exam Schedule</p>
-                        </a>
-                    </li> --}}
                 </ul>
             </li>
 
-            <!-- settings -->
+            <!-- Settings -->
             @if (Auth::user()->user_type=='admin')
             <li class="nav-item">
                 <a href="#" class="nav-link">
@@ -192,7 +184,7 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ route('schools.show',Auth::user()->school->id) }}" class="nav-link">
+                        <a href="{{ route('schools.show', Auth::user()->school->id) }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Customize school details</p>
                         </a>
@@ -201,28 +193,17 @@
             </li>
             @endif
 
-            <!-- Communication -->
-            {{-- <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="nav-icon fas fa-envelope"></i>
-                    <p>
-                        Communication
-                        <i class="fas fa-angle-left right"></i>
-                    </p>
+            <!-- Parent Portal -->
+            <li class="nav-item">
+                <a href="{{ route('parent.search.page') }}" class="nav-link">
+                    <i class="nav-icon fas fa-users"></i>
+                    <p>Parent Portal</p>
                 </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Messages</p>
-                        </a>
-                    </li>
-                </ul>
-            </li> --}}
+            </li>
 
             <!-- My Account -->
             <li class="nav-item">
-                <a href="{{ route('users.show')}}" class="nav-link">
+                <a href="{{ route('users.show') }}" class="nav-link">
                     <i class="nav-icon fas fa-user"></i>
                     <p>My Account</p>
                 </a>
@@ -237,8 +218,8 @@
             </li>
         </ul>
     </nav>
-
       <!-- /.sidebar-menu -->
     </div>
     <!-- /.sidebar -->
   </aside>
+@endauth
