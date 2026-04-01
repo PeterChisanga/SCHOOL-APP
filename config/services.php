@@ -32,10 +32,14 @@ return [
     ],
 
     'africastalking' => [
-    'username' => env('AFRICASTALKING_USERNAME'),
-    'api_key'  => env('AFRICASTALKING_API_KEY'),
-    'from'     => env('AFRICASTALKING_FROM'),
-],
+        'username' => env('AFRICASTALKING_USERNAME'),
+        'api_key'  => env('AFRICASTALKING_API_KEY'),
+        'from'     => env('AFRICASTALKING_FROM'),
+    ],
 
+    'tumeny' => [
+        'api_key' => env('TUMENY_API_KEY'),
+        'api_secret' => env('TUMENY_API_SECRET'),
+    ],
 
 ];

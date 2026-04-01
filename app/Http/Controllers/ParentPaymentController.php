@@ -72,8 +72,8 @@ class ParentPaymentController extends Controller
     private function getAuthToken(): ?string
     {
         try {
-            $apiKey = env('TUMENY_API_KEY');
-            $apiSecret = env('TUMENY_API_SECRET');
+            $apiKey = config('services.tumeny.api_key');
+            $apiSecret = config('services.tumeny.api_secret');
 
             if (!$apiKey || !$apiSecret) {
                 Log::error('Missing Tumeny API credentials');
