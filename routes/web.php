@@ -17,6 +17,8 @@ use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryCategoryController;
+use App\Http\Controllers\ParentPaymentController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +30,19 @@ use App\Http\Controllers\InventoryCategoryController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+// Parent Payment Routes
+Route::get('/parent/search', [ParentPaymentController::class, 'searchPage'])->name('parent.search.page');
+Route::post('/parent/search', [ParentPaymentController::class, 'searchParent'])->name('parent.search');
+Route::get('/parent/payments/{pupilId}', [ParentPaymentController::class, 'showPayments'])->name('parent.payments');
+Route::post('/parent/pay/{paymentId}', [ParentPaymentController::class, 'processPayment'])->name('parent.pay');
+Route::get('/parent/payment/success', [ParentPaymentController::class, 'paymentSuccess'])->name('parent.payment.success');
+Route::post('/tumeny/webhook', [ParentPaymentController::class, 'tumenyWebhook'])->name('tumeny.webhook');
+
+// Route::get('/parent/payment/payment-status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
+// Route::post('/parent/payment/check-status', [ParentPaymentController::class, 'getPaymentStatus'])->name('parent.payment.check-status');
+Route::get('/parent/payment/status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
+Route::post('/parent/payment/get-status', [ParentPaymentController::class, 'getPaymentStatus'])->name('parent.payment.check-status');
 
 Route::get('/', function () {
     return view('welcome');

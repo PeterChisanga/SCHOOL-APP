@@ -43,6 +43,7 @@
         </p>
         <a href="/login" class="hero-btn">Login</a>
         <a href="/users/create" class="hero-btn">Register Your School</a>
+       <a href="/parent/search" class="hero-btn" style="background: #0f5132; color: #fff;">Parent Portal</a>
       </div>
     </section>
 
