@@ -2,6 +2,25 @@
 
 @section('content')
 <div class="container">
+
+    {{-- SUCCESS MESSAGE --}}
+    @if (session('success'))
+        <div id="success-alert" class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <script>
+            (function(){
+                const el = document.getElementById('success-alert');
+                if (!el) return;
+                setTimeout(function(){
+                    el.classList.remove('show');
+                    setTimeout(() => el.remove(), 300);
+                }, 4000);   // Auto dismiss after 4 seconds
+            })();
+        </script>
+    @endif
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Exam Results</h1>
         <a href="{{ route('examResults.create') }}" class="btn btn-primary">Enter New Results</a>
@@ -98,8 +117,27 @@
                             <td>{{ $grade }}</td>
                             <td>{{ $remark }}</td>
                             <td>
-                                <a href="{{ route('examResults.show', $result->id) }}" class="btn btn-sm btn-primary mb-1">View</a>
-                                <a href="{{ route('examResults.edit', $result->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ route('examResults.show', $result->id) }}"
+                                    class="btn btn-primary mr-2" title="View">
+                                        View
+                                    </a>
+
+                                    <a href="{{ route('examResults.edit', $result->id) }}"
+                                    class="btn btn-warning mr-2" title="Edit">
+                                        Edit
+                                    </a>
+
+                                    <form action="{{ route('examResults.destroy', $result->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger"
+                                                onclick="return confirm('Are you sure you want to delete this exam result?')"
+                                                title="Delete">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach
