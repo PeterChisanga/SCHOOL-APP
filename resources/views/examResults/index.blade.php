@@ -71,6 +71,7 @@
                         <th>#</th>
                         <th>Pupil Name</th>
                         <th>Class</th>
+                        <th>Term</th>
                         <th>Subject</th>
                         <th>Mid-Term Mark</th>
                         <th>End-Term Mark</th>
@@ -86,6 +87,7 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $result->pupil->first_name }} {{ $result->pupil->last_name }}</td>
                             <td>{{ $result->pupil->class->name }}</td>
+                            <td>{{ $result->term }}</td>
                             <td>{{ $result->subject->name }}</td>
                             <td>{{ $result->mid_term_mark }} %</td>
                             <td>{{ $result->end_of_term_mark }} %</td>

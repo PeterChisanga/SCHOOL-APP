@@ -6,6 +6,7 @@ use App\Models\ParentModel;
 use App\Models\Pupil;
 use App\Models\Payment;
 use App\Models\PaymentTransaction;
+use App\Models\ExamResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
@@ -34,8 +35,7 @@ class ParentPaymentController extends Controller
         return view('parents.search');
     }
 
-    public function searchParent(Request $request)
-    {
+    public function searchParent(Request $request) {
         $request->validate(['phone' => 'required']);
 
         $phone     = $request->phone;
@@ -57,11 +57,59 @@ class ParentPaymentController extends Controller
 
         session(['current_parent' => $parent]);
 
-        return redirect()->route('parent.payments', ['pupilId' => $pupil->id]);
+        // return redirect()->route('parent.payments', ['pupilId' => $pupil->id]);
+        return redirect()->route('parent.results', ['pupilId' => $pupil->id]);
     }
 
-    public function showPayments($pupilId)
-    {
+    public function showResults($pupilId) {
+        $pupil = Pupil::findOrFail($pupilId);
+        $parent = session('current_parent');
+
+        $terms = $pupil->examResults->pluck('term')->unique();
+
+        // Calculate position in class for each term
+        $positions = [];
+        $classId = $pupil->class_id;
+        foreach ($terms as $term) {
+            $classResults = ExamResult::whereHas('pupil', function ($query) use ($classId) {
+                $query->where('class_id', $classId);
+            })->where('term', $term)->get();
+
+            $pupilTotals = $classResults->groupBy('pupil_id')->map(function ($pupilResults) {
+                $total = $pupilResults->sum(function ($result) {
+                    return ($result->mid_term_mark + $result->end_of_term_mark) / 2;
+                });
+                return [
+                    'pupil_id' => $pupilResults->first()->pupil_id,
+                    'total' => $total,
+                ];
+            })->sortByDesc('total')->values();
+
+            $currentPosition = 1;
+            $previousTotal = null;
+            $skipPositions = 0;
+            foreach ($pupilTotals as $index => $pupilData) {
+                if ($previousTotal !== $pupilData['total']) {
+                    $currentPosition += $skipPositions;
+                    $skipPositions = 1;
+                } else {
+                    $skipPositions++;
+                }
+                if ($pupilData['pupil_id'] == $pupil->id) {
+                    $positions[$term] = $currentPosition;
+                    break;
+                }
+                $previousTotal = $pupilData['total'];
+            }
+            if (!isset($positions[$term])) {
+                $positions[$term] = '-';
+            }
+        }
+
+        return view('parents.results', compact('pupil', 'terms', 'positions'));
+    }
+
+    public function showPayments($pupilId) {
         $pupil = Pupil::findOrFail($pupilId);
         $payments = Payment::where('pupil_id', $pupilId)->get();
         $parent = session('current_parent');

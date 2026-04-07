@@ -35,6 +35,9 @@ use App\Http\Controllers\ParentPaymentController;
 Route::get('/parent/search', [ParentPaymentController::class, 'searchPage'])->name('parent.search.page');
 Route::post('/parent/search', [ParentPaymentController::class, 'searchParent'])->name('parent.search');
 Route::get('/parent/payments/{pupilId}', [ParentPaymentController::class, 'showPayments'])->name('parent.payments');
+Route::get('/parent/results/{pupilId}', [ParentPaymentController::class, 'showResults'])->name('parent.results');
+// This route is for downloading results as PDF, it will be used in the results page for parents
+Route::get('/examResults/exportPdf/{pupil}/{term}', [ExamController::class, 'exportPdf'])->name('examResults.exportPdf');
 Route::post('/parent/pay/{paymentId}', [ParentPaymentController::class, 'processPayment'])->name('parent.pay');
 Route::get('/parent/payment/success', [ParentPaymentController::class, 'paymentSuccess'])->name('parent.payment.success');
 Route::post('/tumeny/webhook', [ParentPaymentController::class, 'tumenyWebhook'])->name('tumeny.webhook');
@@ -84,7 +87,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('parents/edit/{parent}', [ParentController::class, 'edit'])->name('parents.edit');
 
     Route::resource('examResults', ExamController::class);
-    Route::get('/examResults/exportPdf/{pupil}/{term}', [ExamController::class, 'exportPdf'])->name('examResults.exportPdf');
+    // Route::get('/examResults/exportPdf/{pupil}/{term}', [ExamController::class, 'exportPdf'])->name('examResults.exportPdf');
 
     Route::resource('subjects', SubjectController::class);
     Route::resource('classes', ClassController::class);

@@ -163,7 +163,7 @@
     <div class="ps-card-head">
       <div class="ps-logo"><i class="fas fa-users"></i></div>
       <h2>Parent Portal</h2>
-      <p>View and pay your child's school fees securely</p>
+      <p>View Children Results and pay your child's school fees securely</p>
     </div>
 
     <div class="ps-card-body">
@@ -218,7 +218,7 @@
         <i class="fas fa-arrow-left"></i> Back to Home
       </a>
 
-      <div class="ps-features">
+      {{-- <div class="ps-features">
         <div class="ps-feature">
           <i class="fas fa-shield-alt"></i>
           <span>Secure &amp; private access</span>
@@ -235,7 +235,7 @@
           <i class="fas fa-receipt"></i>
           <span>Full payment history</span>
         </div>
-      </div>
+      </div> --}}
 
     </div>
   </div>

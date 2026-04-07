@@ -41,79 +41,6 @@ class ExamController extends Controller {
         return view('examResults.index', compact('examResults', 'classes', 'subjects'));
     }
 
-    // public function create(Request $request) {
-    //     $schoolId = Auth::user()->school_id;
-
-    //     $subjects = Subject::where('school_id', $schoolId)->get();
-    //     $classes = ClassModel::where('school_id', $schoolId)->get();
-    //     $classId = $request->input('class_id');
-
-    //     $pupils = Pupil::where('school_id', $schoolId)
-    //                 ->when($classId, function ($query) use ($classId) {
-    //                     return $query->where('class_id', $classId);
-    //                 })
-    //                 ->get();
-
-    //     return view('examResults.create', compact('subjects', 'pupils', 'classes', 'classId'));
-    // }
-
-    // public function store(Request $request) {
-    //     $this->validate($request, [
-    //         'term' => 'required|string|max:255',
-    //         'subject_id' => 'required|exists:subjects,id',
-    //         'pupil_results.*.mid_term_raw' => 'required|numeric|min:0',
-    //         'pupil_results.*.mid_term_max' => 'required|numeric|min:1',
-    //         'pupil_results.*.mid_term_mark' => 'required|numeric|min:0|max:100',
-    //         'pupil_results.*.end_term_raw' => 'required|numeric|min:0',
-    //         'pupil_results.*.end_term_max' => 'required|numeric|min:1',
-    //         'pupil_results.*.end_of_term_mark' => 'required|numeric|min:0|max:100',
-    //     ]);
-
-    //     $schoolId = Auth::user()->school_id;
-
-    //     foreach ($request->input('pupil_results') as $pupilId => $result) {
-    //         $pupil = Pupil::findOrFail($pupilId);
-    //         if ($pupil->school_id !== $schoolId) {
-    //             return redirect()->route('examResults.index')
-    //                 ->with('error', 'You are not authorized to add an exam result for this pupil.');
-    //         }
-
-    //         // Validate raw marks against max marks
-    //         if ($result['mid_term_raw'] > $result['mid_term_max']) {
-    //             return redirect()->back()->withErrors(['pupil_results.' . $pupilId . '.mid_term_raw' => 'Mid-term raw mark cannot exceed total mark.']);
-    //         }
-    //         if ($result['end_term_raw'] > $result['end_term_max']) {
-    //             return redirect()->back()->withErrors(['pupil_results.' . $pupilId . '.end_term_raw' => 'End-term raw mark cannot exceed total mark.']);
-    //         }
-
-    //         // Verify percentage consistency
-    //         $midTermPercentage = ($result['mid_term_max'] > 0) ? ($result['mid_term_raw'] / $result['mid_term_max']) * 100 : 0;
-    //         $endTermPercentage = ($result['end_term_max'] > 0) ? ($result['end_term_raw'] / $result['end_term_max']) * 100 : 0;
-
-    //         if (abs($midTermPercentage - $result['mid_term_mark']) > 0.01) {
-    //             return redirect()->back()->withErrors(['pupil_results.' . $pupilId . '.mid_term_mark' => 'Mid-term percentage does not match raw mark calculation.']);
-    //         }
-    //         if (abs($endTermPercentage - $result['end_of_term_mark']) > 0.01) {
-    //             return redirect()->back()->withErrors(['pupil_results.' . $pupilId . '.end_of_term_mark' => 'End-term percentage does not match raw mark calculation.']);
-    //         }
-
-    //         ExamResult::create([
-    //             'pupil_id' => $pupilId,
-    //             'subject_id' => $request->input('subject_id'),
-    //             'term' => $request->input('term'),
-    //             'mid_term_raw' => $result['mid_term_raw'],
-    //             'mid_term_max' => $result['mid_term_max'],
-    //             'mid_term_mark' => $result['mid_term_mark'],
-    //             'end_term_raw' => $result['end_term_raw'],
-    //             'end_term_max' => $result['end_term_max'],
-    //             'end_of_term_mark' => $result['end_of_term_mark'],
-    //         ]);
-    //     }
-
-    //     return redirect()->route('examResults.index')
-    //         ->with('success', 'Exam results recorded successfully!');
-    // }
-
     public function create(Request $request) {
         $schoolId = Auth::user()->school_id;
 
@@ -427,7 +354,7 @@ class ExamController extends Controller {
     // }
 
     public function exportPdf(Pupil $pupil, $term) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $pupil->school_id;
         $school = School::find($schoolId);
 
         if ($pupil->school_id !== $schoolId) {

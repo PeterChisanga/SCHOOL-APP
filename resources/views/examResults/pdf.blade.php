@@ -52,7 +52,7 @@
         <h2>SCHOOL REPORT FORM</h2>
         <h3>Results for {{ $pupil->first_name }} {{ $pupil->last_name }}</h3>
     </div>
-    <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term }} {{ $year }}  @if(auth()->user()->isPremium()) | <strong>Position in Class:</strong> {{ $position ?? '-' }} @endif</p>
+    <p><strong>Class:</strong> {{ $pupil->class->name }} | <strong>Gender:</strong> {{ $pupil->gender }} | <strong>Term:</strong> {{ $term }} {{ $year }}  @if($pupil->school->is_premium) | <strong>Position in Class:</strong> {{ $position ?? '-' }} @endif</p>
 
     @if($examResultsForTerm->isEmpty())
         <p>No results available for {{ $term }}.</p>
@@ -61,7 +61,7 @@
             <thead>
                 <tr>
                     <th rowspan="2">Subject</th>
-                    @if(auth()->user()->isPremium())
+                    @if($pupil->school->is_premium)
                         <th colspan="3" class="text-center">Mid-Term</th>
                         <th colspan="3" class="text-center">End of Term</th>
                     @else
@@ -72,7 +72,7 @@
                     <th rowspan="2">Grade</th>
                     <th rowspan="2">Comments</th>
                 </tr>
-                @if(auth()->user()->isPremium())
+                @if($pupil->school->is_premium)
                     <tr>
                         <th>Mark</th>
                         <th>Total Mark</th>
@@ -105,7 +105,7 @@
                     @endphp
                     <tr>
                         <td>{{ $result->subject->name }}</td>
-                        @if(auth()->user()->isPremium())
+                        @if($pupil->school->is_premium)
                             <td>{{ $result->mid_term_raw !== null ? number_format($result->mid_term_raw, 2) : '-' }}</td>
                             <td>{{ $result->mid_term_max !== null ? number_format($result->mid_term_max, 2) : '-' }}</td>
                             <td>{{ number_format($result->mid_term_mark, 2) }}%</td>
