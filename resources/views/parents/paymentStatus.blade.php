@@ -126,7 +126,7 @@
 
     <div class="pst-head">
       <h2><i class="fas fa-satellite-dish"></i> &nbsp;Payment Status</h2>
-      <p>We are confirming your transaction with Tumeny</p>
+      <p>We are confirming your transaction with Lipila</p>
     </div>
 
     <div class="pst-body">
@@ -144,7 +144,7 @@
         </tr>
         <tr>
           <td>Reference</td>
-          <td><code style="background:#f3f4f6;padding:3px 8px;border-radius:5px;font-size:.82rem;">{{ $tumenyPaymentId }}</code></td>
+          <td><code style="background:#f3f4f6;padding:3px 8px;border-radius:5px;font-size:.82rem;">{{ $referenceId }}</code></td>
         </tr>
       </table>
       @endif
@@ -175,7 +175,7 @@
           <div class="pst-status-icon"><i class="fas fa-check-circle"></i></div>
           <div class="pst-status-text">
             <strong>Payment Successful!</strong>
-            <p>Your payment has been confirmed. Your balance will be updated shortly.</p>
+            <p>Your payment has been confirmed. Your balance has been updated.</p>
           </div>
         </div>
         <div class="pst-actions">
@@ -196,7 +196,7 @@
           <div class="pst-status-icon"><i class="fas fa-times-circle"></i></div>
           <div class="pst-status-text">
             <strong>Payment Failed</strong>
-            <p>The transaction could not be completed. Please check your mobile money balance and try again.</p>
+            <p id="failed-message">The transaction could not be completed. Please check your mobile money balance and try again.</p>
           </div>
         </div>
         <div class="pst-actions">
@@ -217,7 +217,7 @@
           <div class="pst-status-icon"><i class="fas fa-clock"></i></div>
           <div class="pst-status-text">
             <strong>Confirmation Timed Out</strong>
-            <p>We could not confirm your payment in time. Please check your mobile money balance or contact the school.</p>
+            <p>We could not confirm your payment in time. If you approved the prompt, your balance will update automatically once Lipila confirms. Otherwise, please try again.</p>
           </div>
         </div>
         <div class="pst-actions">
@@ -239,10 +239,10 @@
 
 @section('scripts')
 <script>
-  const PAYMENT_ID   = "{{ $tumenyPaymentId }}";
+  const PAYMENT_ID   = "{{ $referenceId }}";
   const CHECK_URL    = "{{ route('parent.payment.check-status') }}";
   const CSRF         = "{{ csrf_token() }}";
-  const MAX_ATTEMPTS = 20;
+  const MAX_ATTEMPTS = 20;        // 20 × 6s = 2 minutes
   const INTERVAL_MS  = 6000;
 
   let attempts = 0;
@@ -278,15 +278,24 @@
       const json = await res.json();
       if (!json.success) return;
 
-      const status = (json.data?.payment?.status ?? '').toUpperCase();
+      // Lipila returns "Successful" or "Failed" (capital first letter)
+      const status = (json.data?.status ?? '').toLowerCase();
 
-      if (status === 'SUCCESS' || status === 'COMPLETED') {
+      if (status === 'successful') {
         stopPolling();
         showPanel('success');
-      } else if (status === 'FAILED' || status === 'CANCELLED') {
+      } else if (status === 'failed') {
         stopPolling();
+        // Show the failure reason from Lipila if available
+        const msg = json.data?.message ?? null;
+        if (msg) {
+          const el = document.getElementById('failed-message');
+          if (el) el.textContent = msg;
+        }
         showPanel('failed');
       }
+      // status === 'pending' → keep polling
+
     } catch (e) {
       // keep polling on network errors
     }
@@ -297,6 +306,6 @@
   }
 
   polling = setInterval(checkStatus, INTERVAL_MS);
-  checkStatus();
+  checkStatus(); // run immediately on page load
 </script>
 @endsection

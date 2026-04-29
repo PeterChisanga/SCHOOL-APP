@@ -17,6 +17,10 @@ use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\ParentPaymentController;
 
+use App\Http\Controllers\LipilaWebhookController;
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes update
@@ -39,6 +43,10 @@ Route::get('/parent/payment/payment-status', [ParentPaymentController::class, 'c
 Route::post('/parent/payment/check-status', [ParentPaymentController::class, 'getPaymentStatus'])->name('parent.payment.check-status');
 Route::get('/parent/payment/status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
 Route::post('/parent/payment/get-status', [ParentPaymentController::class, 'getPaymentStatus'])->name('parent.payment.check-status');
+
+// Add this near the Tumeny webhook line — outside any auth middleware
+//Route::post('/lipila/callback', [LipilaWebhookController::class, 'handle'])->name('lipila.callback');
+Route::post('/lipila/callback', [ParentPaymentController::class, 'lipilaWebhook'])->name('lipila.callback');
 
 
 

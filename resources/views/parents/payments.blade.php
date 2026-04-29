@@ -341,9 +341,9 @@
                   </div>
                 </div>
                 <div class="pp-pay-actions">
-                  <button type="submit" class="pp-btn pp-btn-primary">
-                    <i class="fas fa-lock"></i> Pay via Tumeny
-                  </button>
+                 <button type="submit" class="pp-btn pp-btn-primary" id="pay-btn-{{ $payment->id }}">
+                    <i class="fas fa-lock"></i> Pay K{{ number_format($payment->balance, 2) }}
+                </button>
                   <button type="button" class="pp-btn pp-btn-secondary" onclick="togglePayForm('form-{{ $payment->id }}', null)">
                     Cancel
                   </button>
@@ -378,5 +378,15 @@
     document.querySelectorAll('.pp-pay-form-wrap').forEach(f => f.classList.remove('open'));
     if (!isOpen) el.classList.add('open');
   }
-</script>
+  document.querySelectorAll('input[name="amount_to_pay"]').forEach(input => {
+        input.addEventListener('input', function () {
+            const form = this.closest('form');
+            const btn = form.querySelector('[id^="pay-btn-"]');
+            const val = parseFloat(this.value);
+            if (btn && !isNaN(val) && val > 0) {
+                btn.innerHTML = `<i class="fas fa-lock"></i> Pay K${val.toFixed(2)}`;
+            }
+        });
+    });
+    </script>
 @endsection

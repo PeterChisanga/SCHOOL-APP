@@ -35,6 +35,11 @@ return [
     'username' => env('AFRICASTALKING_USERNAME'),
     'api_key'  => env('AFRICASTALKING_API_KEY'),
     'from'     => env('AFRICASTALKING_FROM'),
+    ],
+    
+    'lipila' => [
+        'api_key'        => env('LIPILA_API_KEY'),
+        'webhook_secret' => env('LIPILA_WEBHOOK_SECRET'),
 ],
 
 
