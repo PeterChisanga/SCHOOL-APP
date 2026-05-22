@@ -27,8 +27,8 @@
             </div>
 
             <div class="footer-bottom">
-                <p>Made with by <a href="https://petermwamba.com/" target="_blank">E-Shool Engineers</a></p>
-                <p>&copy; 2025 E-School. All rights reserved.</p>
+                <p>Developed by <a href="https://petermwamba.com/" target="_blank">E-Shool Engineers</a></p>
+                <p>&copy; 2026 E-School. All rights reserved.</p>
             </div>
         </div>
     </footer>

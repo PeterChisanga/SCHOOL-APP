@@ -24,6 +24,7 @@ class PupilController extends Controller {
                         ->when($classId, function ($query, $classId) {
                             return $query->where('class_id', $classId);
                         })
+                        ->orderBy('first_name')
                         ->get();
 
             return view('pupils.index', compact('pupils', 'classes'));
