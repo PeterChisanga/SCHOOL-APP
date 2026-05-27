@@ -167,8 +167,8 @@ class ExamController extends Controller {
                 ];
             } else {
                 $validationRules += [
-                    'mid_term_mark' => 'required|numeric|min:0|max:100',
-                    'end_of_term_mark' => 'required|numeric|min:0|max:100',
+                    'pupil_results.*.mid_term_mark' => 'required|numeric|min:0|max:100',
+                    'pupil_results.*.end_of_term_mark' => 'required|numeric|min:0|max:100',
                 ];
             }
         }
