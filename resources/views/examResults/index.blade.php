@@ -23,8 +23,9 @@
     @endif
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Exam Results</h1>
-        <a href="{{ route('examResults.create') }}" class="btn btn-primary">Enter New Results</a>
-        <a href="{{ route('results.sendSms') }}" class="btn btn-secondary">Send Resuults</a>
+        <a href="{{ route('examResults.create') }}" class="btn btn-primary">Enter Final Exam Results</a>
+        <a href="{{ route('assessments.create') }}" class="btn btn-secondary">Enter Assessment Results</a>
+        {{-- <a href="{{ route('results.sendSms') }}" class="btn btn-secondary">Send Resuults</a> --}}
     </div>
 
     <!-- Filter Form -->
@@ -59,7 +60,7 @@
     </form>
 
     <!-- Results Table -->
-    @if($examResults->isEmpty())
+    @if($groupedResults->isEmpty())
         <div class="alert alert-warning">
             No exam results found for the selected criteria.
         </div>
@@ -72,72 +73,157 @@
                         <th>Pupil Name</th>
                         <th>Class</th>
                         <th>Term</th>
-                        <th>Subject</th>
-                        <th>Mid-Term Mark</th>
-                        <th>End-Term Mark</th>
-                        <th>Average</th>
-                        <th>Grade</th>
-                        <th>Grade Remark</th>
+                        <th>Subjects</th>
+                        <th>CAs Done</th>
+                        <th>Overall CA Avg</th>
+                        <th>Overall Exam Avg</th>
+                        <th>Final Mark</th>
+                        <th>Overall Grade</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($examResults as $result)
+                    @foreach($groupedResults as $key => $results)
+                        @php
+                            $firstResult  = $results->first();
+                            $pupil        = $firstResult->pupil;
+                            $term         = $firstResult->term;
+                            $groupKey     = $pupil->id . '_' . $term;
+
+                            // Assessments for this pupil + term
+                            $pupilAssessments = $assessments[$groupKey] ?? collect();
+
+                            // Per-subject final mark calculation
+                            $subjectFinalMarks = collect();
+
+                            foreach ($results as $result) {
+                                $subjectCAs = $pupilAssessments
+                                    ->where('subject_id', $result->subject_id);
+
+                                $caPercentages = collect();
+
+                                // Mid-term as CA
+                                if ($result->mid_term_mark !== null) {
+                                    $caPercentages->push($result->mid_term_mark);
+                                }
+
+                                // Other assessments
+                                foreach ($subjectCAs as $ca) {
+                                    $caPercentages->push($ca->percentage);
+                                }
+
+                                $caAverage    = $caPercentages->isNotEmpty()
+                                    ? $caPercentages->avg()
+                                    : null;
+                                $caWeighted   = $caAverage !== null
+                                    ? $caAverage * 0.40
+                                    : null;
+                                $examWeighted = $result->end_of_term_mark !== null
+                                    ? $result->end_of_term_mark * 0.60
+                                    : null;
+
+                                if ($caWeighted !== null && $examWeighted !== null) {
+                                    $subjectFinalMarks->push([
+                                        'ca_avg'     => $caAverage,
+                                        'exam_mark'  => $result->end_of_term_mark,
+                                        'final_mark' => $caWeighted + $examWeighted,
+                                    ]);
+                                }
+                            }
+
+                            // Aggregates across all subjects
+                            $overallCaAvg   = $subjectFinalMarks->isNotEmpty()
+                                ? $subjectFinalMarks->avg('ca_avg')
+                                : null;
+                            $overallExamAvg = $subjectFinalMarks->isNotEmpty()
+                                ? $subjectFinalMarks->avg('exam_mark')
+                                : null;
+                            $overallFinal   = $subjectFinalMarks->isNotEmpty()
+                                ? $subjectFinalMarks->avg('final_mark')
+                                : null;
+
+                            // Overall Grade
+                            $overallGrade  = '-';
+                            $overallRemark = '-';
+                            if ($overallFinal !== null) {
+                                $overallGrade = match(true) {
+                                    $overallFinal >= 75 => 'A',
+                                    $overallFinal >= 60 => 'B',
+                                    $overallFinal >= 50 => 'C',
+                                    $overallFinal >= 45 => 'D',
+                                    $overallFinal >= 40 => 'E',
+                                    default             => 'F'
+                                };
+                                $overallRemark = match($overallGrade) {
+                                    'A' => 'Excellent',
+                                    'B' => 'Very Good',
+                                    'C' => 'Good',
+                                    'D' => 'Satisfactory',
+                                    'E' => 'Pass',
+                                    'F' => 'Fail'
+                                };
+                            }
+
+                            // Count total CAs done (mid-terms + assessments)
+                            $midTermCount = $results->whereNotNull('mid_term_mark')->count();
+                            $totalCaDone  = $midTermCount + $pupilAssessments->count();
+                        @endphp
+
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ $result->pupil->first_name }} {{ $result->pupil->last_name }}</td>
-                            <td>{{ $result->pupil->class->name }}</td>
-                            <td>{{ $result->term }}</td>
-                            <td>{{ $result->subject->name }}</td>
-                            <td>{{ $result->mid_term_mark }} %</td>
-                            <td>{{ $result->end_of_term_mark }} %</td>
-                            @php
-                                $average = ($result->mid_term_mark + $result->end_of_term_mark) / 2;
-
-                                if ($average >= 75) {
-                                    $grade = 'A';
-                                    $remark = 'Excellent';
-                                } elseif ($average >= 60) {
-                                    $grade = 'B';
-                                    $remark = 'Very Good';
-                                } elseif ($average >= 50) {
-                                    $grade = 'C';
-                                    $remark = 'Good';
-                                } elseif ($average >= 45) {
-                                    $grade = 'D';
-                                    $remark = 'Satisfactory';
-                                } elseif ($average >= 40) {
-                                    $grade = 'E';
-                                    $remark = 'Pass';
-                                } else {
-                                    $grade = 'F';
-                                    $remark = 'Fail';
-                                }
-                            @endphp
-
-                            <td>{{ $average }} %</td>
-                            <td>{{ $grade }}</td>
-                            <td>{{ $remark }}</td>
+                            <td>
+                                <strong>
+                                    {{ $pupil->first_name }} {{ $pupil->last_name }}
+                                </strong>
+                            </td>
+                            <td>{{ $pupil->class->name ?? 'N/A' }}</td>
+                            <td>{{ ucfirst($term) }}</td>
+                            <td>
+                                <small>
+                                    {{ $results->map(fn($r) => $r->subject->name)->join(', ') }}
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-info">{{ $totalCaDone }}</span>
+                            </td>
+                            <td class="text-center">
+                                {{ $overallCaAvg !== null ? number_format($overallCaAvg, 1).'%' : '—' }}
+                            </td>
+                            <td class="text-center">
+                                {{ $overallExamAvg !== null ? number_format($overallExamAvg, 1).'%' : '—' }}
+                            </td>
+                            <td class="text-center">
+                                <strong>
+                                    {{ $overallFinal !== null ? number_format($overallFinal, 1).'%' : '—' }}
+                                </strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge
+                                    @if($overallGrade == 'A') badge-success
+                                    @elseif($overallGrade == 'B') badge-primary
+                                    @elseif($overallGrade == 'C') badge-info
+                                    @elseif($overallGrade == 'D' || $overallGrade == 'E') badge-warning
+                                    @else badge-danger
+                                    @endif">
+                                    {{ $overallGrade }} — {{ $overallRemark }}
+                                </span>
+                            </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('examResults.show', $result->id) }}"
-                                    class="btn btn-primary mr-2" title="View">
+                                    <a href="{{ route('examResults.show', $firstResult->id) }}"
+                                        class="btn btn-primary mr-1">
                                         View
                                     </a>
-
-                                    <a href="{{ route('examResults.edit', $result->id) }}"
-                                    class="btn btn-warning mr-2" title="Edit">
+                                    <a href="{{ route('examResults.edit', $firstResult->id) }}"
+                                        class="btn btn-warning mr-1">
                                         Edit
                                     </a>
-
-                                    <form action="{{ route('examResults.destroy', $result->id) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('examResults.destroy', $firstResult->id) }}"
+                                        method="POST" class="d-inline"
+                                        onsubmit="return confirm('Delete all results for {{ $pupil->first_name }} {{ $pupil->last_name }} - {{ ucfirst($term) }}?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger"
-                                                onclick="return confirm('Are you sure you want to delete this exam result?')"
-                                                title="Delete">
-                                            Delete
-                                        </button>
+                                        <button type="submit" class="btn btn-danger">Delete</button>
                                     </form>
                                 </div>
                             </td>
@@ -145,6 +231,15 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
+        {{-- Legend --}}
+        <div class="mt-2">
+            <small class="text-muted">
+                <i class="fas fa-info-circle"></i>
+                Final Mark = Average of all CAs (including Mid-Term) × 40% + Final Exam × 60%.
+                Each row represents one pupil's full term. Click <strong>View</strong> for subject breakdown.
+            </small>
         </div>
     @endif
 </div>

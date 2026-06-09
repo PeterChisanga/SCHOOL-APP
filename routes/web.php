@@ -15,6 +15,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
+use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryCategoryController;
 use App\Http\Controllers\ParentPaymentController;
@@ -87,7 +88,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('parents/edit/{parent}', [ParentController::class, 'edit'])->name('parents.edit');
 
     Route::resource('examResults', ExamController::class);
-    // Route::get('/examResults/exportPdf/{pupil}/{term}', [ExamController::class, 'exportPdf'])->name('examResults.exportPdf');
+
+    Route::resource('assessments', AssessmentController::class);
 
     Route::resource('subjects', SubjectController::class);
     Route::resource('classes', ClassController::class);

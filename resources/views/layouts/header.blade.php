@@ -172,12 +172,12 @@
                             <p>Exam Results</p>
                         </a>
                     </li>
-                    {{-- <li class="nav-item">
-                        <a href="" class="nav-link">
+                    <li class="nav-item">
+                        <a href="{{ route('assessments.index') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
-                            <p>Exam Schedule</p>
+                            <p>Continuous Assessments</p>
                         </a>
-                    </li> --}}
+                    </li>
                 </ul>
             </li>
 

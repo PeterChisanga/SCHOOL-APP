@@ -57,6 +57,10 @@ class Pupil extends Model
         return $this->hasMany(ExamResult::class);
     }
 
+    public function assessments() {
+        return $this->hasMany(Assessment::class);
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class);

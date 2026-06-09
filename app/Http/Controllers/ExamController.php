@@ -14,14 +14,42 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExamController extends Controller {
 
+    // public function index(Request $request) {
+    //     $schoolId = Auth::user()->school_id;
+    //     $classes = ClassModel::where('school_id', $schoolId)->get();
+    //     $subjects = Subject::where('school_id', $schoolId)->get();
+
+    //     $query = ExamResult::with(['pupil.class', 'subject'])->whereHas('pupil', function ($query) use ($schoolId) {
+    //         $query->where('school_id', $schoolId);
+    //     });
+
+    //     if ($request->filled('class_id')) {
+    //         $query->whereHas('pupil', function ($q) use ($request) {
+    //             $q->where('class_id', $request->class_id);
+    //         });
+    //     }
+
+    //     if ($request->filled('subject_id')) {
+    //         $query->where('subject_id', $request->subject_id);
+    //     }
+
+    //     $examResults = $query
+    //                 ->orderBy('updated_at', 'desc')
+    //                 ->orderBy('created_at', 'desc')
+    //                 ->get();
+
+    //     return view('examResults.index', compact('examResults', 'classes', 'subjects'));
+    // }
+
     public function index(Request $request) {
         $schoolId = Auth::user()->school_id;
-        $classes = ClassModel::where('school_id', $schoolId)->get();
+        $classes  = ClassModel::where('school_id', $schoolId)->get();
         $subjects = Subject::where('school_id', $schoolId)->get();
 
-        $query = ExamResult::with(['pupil.class', 'subject'])->whereHas('pupil', function ($query) use ($schoolId) {
-            $query->where('school_id', $schoolId);
-        });
+        $query = ExamResult::with(['pupil.class', 'subject'])
+            ->whereHas('pupil', function ($query) use ($schoolId) {
+                $query->where('school_id', $schoolId);
+            });
 
         if ($request->filled('class_id')) {
             $query->whereHas('pupil', function ($q) use ($request) {
@@ -33,12 +61,41 @@ class ExamController extends Controller {
             $query->where('subject_id', $request->subject_id);
         }
 
-        $examResults = $query
-                    ->orderBy('updated_at', 'desc')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+        if ($request->filled('term')) {
+            $query->where('term', $request->term);
+        }
 
-        return view('examResults.index', compact('examResults', 'classes', 'subjects'));
+        $examResults = $query
+            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Group by pupil_id + term so each row = one pupil's full term results
+        $groupedResults = $examResults->groupBy(function ($result) {
+            return $result->pupil_id . '_' . $result->term;
+        });
+
+        // Fetch all assessments for this school, grouped by pupil_id + term
+        $assessments = \App\Models\Assessment::with('subject')
+            ->whereHas('pupil', function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId);
+            })
+            ->when($request->filled('class_id'), function ($q) use ($request) {
+                $q->whereHas('pupil', function ($q2) use ($request) {
+                    $q2->where('class_id', $request->class_id);
+                });
+            })
+            ->when($request->filled('term'), function ($q) use ($request) {
+                $q->where('term', $request->term);
+            })
+            ->get()
+            ->groupBy(function ($a) {
+                return $a->pupil_id . '_' . $a->term;
+            });
+
+        return view('examResults.index', compact(
+            'examResults', 'groupedResults', 'assessments', 'classes', 'subjects'
+        ));
     }
 
     public function create(Request $request) {
@@ -252,7 +309,13 @@ class ExamController extends Controller {
 
         $terms = $examResult->pupil->examResults->pluck('term')->unique();
 
-        // Calculate position in class for each term
+        // Fetch assessments grouped by term for this pupil
+        $assessmentsByTerm = $examResult->pupil->assessments()
+            ->with('subject')
+            ->get()
+            ->groupBy('term');
+
+        // Calculate position in class for each term (existing logic unchanged)
         $positions = [];
         $classId = $examResult->pupil->class_id;
         foreach ($terms as $term) {
@@ -266,14 +329,14 @@ class ExamController extends Controller {
                 });
                 return [
                     'pupil_id' => $pupilResults->first()->pupil_id,
-                    'total' => $total,
+                    'total'    => $total,
                 ];
             })->sortByDesc('total')->values();
 
             $currentPosition = 1;
-            $previousTotal = null;
-            $skipPositions = 0;
-            foreach ($pupilTotals as $index => $pupilData) {
+            $previousTotal   = null;
+            $skipPositions   = 0;
+            foreach ($pupilTotals as $pupilData) {
                 if ($previousTotal !== $pupilData['total']) {
                     $currentPosition += $skipPositions;
                     $skipPositions = 1;
@@ -291,12 +354,11 @@ class ExamController extends Controller {
             }
         }
 
-        return view('examResults.show', compact('examResult', 'terms', 'positions'));
+        return view('examResults.show', compact('examResult', 'terms', 'positions', 'assessmentsByTerm'));
     }
 
     // public function exportPdf(Pupil $pupil, $term) {
-    //     $schoolId = Auth::user()->school_id;
-
+    //     $schoolId = $pupil->school_id;
     //     $school = School::find($schoolId);
 
     //     if ($pupil->school_id !== $schoolId) {
@@ -315,7 +377,7 @@ class ExamController extends Controller {
 
     //     $pupilTotals = $classResults->groupBy('pupil_id')->map(function ($pupilResults) {
     //         $total = $pupilResults->sum(function ($result) {
-    //             return ($result->mid_term_mark + $result->end_of_term_mark) / 2;
+    //             return ($result->mid_term_mark ?? 0) + ($result->end_of_term_mark ?? 0) / 2;
     //         });
     //         return [
     //             'pupil_id' => $pupilResults->first()->pupil_id,
@@ -341,13 +403,17 @@ class ExamController extends Controller {
     //         $previousTotal = $pupilData['total'];
     //     }
 
-    //     // Pass selected term, exam results, school, and position to the PDF view
+    //     // Determine year based on latest result or current year
+    //     $year = $examResultsForTerm->isNotEmpty() ? $examResultsForTerm->last()->created_at->format('Y') : now()->format('Y');
+
+    //     // Pass selected term, exam results, school, position, and year to the PDF view
     //     $pdf = PDF::loadView('examResults.pdf', [
     //         'pupil' => $pupil,
     //         'school' => $school,
     //         'examResultsForTerm' => $examResultsForTerm,
     //         'term' => $term,
     //         'position' => $position,
+    //         'year' => $year,
     //     ]);
 
     //     return $pdf->download("exam_results_{$pupil->first_name}_{$term}.pdf");
@@ -355,37 +421,70 @@ class ExamController extends Controller {
 
     public function exportPdf(Pupil $pupil, $term) {
         $schoolId = $pupil->school_id;
-        $school = School::find($schoolId);
-
-        if ($pupil->school_id !== $schoolId) {
-            return redirect()->route('examResults.index')
-                ->with('error', 'You are not authorized to export this exam result.');
-        }
+        $school   = School::find($schoolId);
 
         // Fetch results for the selected term only
         $examResultsForTerm = $pupil->examResults->where('term', $term);
 
-        // Calculate position in class for the term
-        $classId = $pupil->class_id;
+        // Fetch all assessments for this pupil and term
+        $assessmentsForTerm = $pupil->assessments()
+            ->with('subject')
+            ->where('term', $term)
+            ->orderBy('assessment_date')
+            ->get();
+
+        // Group assessments by subject_id
+        $assessmentsBySubject = $assessmentsForTerm->groupBy('subject_id');
+
+        // Collect all unique CA titles for column headers
+        $allCaTitles = $assessmentsForTerm->pluck('title')->unique()->values();
+
+        // Calculate position using the new weighted final mark
+        $classId      = $pupil->class_id;
         $classResults = ExamResult::whereHas('pupil', function ($query) use ($classId) {
             $query->where('class_id', $classId);
         })->where('term', $term)->get();
 
-        $pupilTotals = $classResults->groupBy('pupil_id')->map(function ($pupilResults) {
-            $total = $pupilResults->sum(function ($result) {
-                return ($result->mid_term_mark ?? 0) + ($result->end_of_term_mark ?? 0) / 2;
-            });
+        // For each pupil in the class, calculate their weighted final mark total
+        $pupilTotals = $classResults->groupBy('pupil_id')->map(function ($pupilResults) use ($assessmentsBySubject) {
+            $subjectFinalMarks = collect();
+
+            foreach ($pupilResults as $result) {
+                $caPercentages = collect();
+
+                if ($result->mid_term_mark !== null) {
+                    $caPercentages->push($result->mid_term_mark);
+                }
+
+                $subjectAssessments = \App\Models\Assessment::where('pupil_id', $result->pupil_id)
+                    ->where('subject_id', $result->subject_id)
+                    ->where('term', $result->term)
+                    ->get();
+
+                foreach ($subjectAssessments as $ca) {
+                    $caPercentages->push($ca->percentage);
+                }
+
+                $caAverage    = $caPercentages->isNotEmpty() ? $caPercentages->avg() : null;
+                $caWeighted   = $caAverage !== null ? $caAverage * 0.40 : null;
+                $examWeighted = $result->end_of_term_mark !== null ? $result->end_of_term_mark * 0.60 : null;
+
+                if ($caWeighted !== null && $examWeighted !== null) {
+                    $subjectFinalMarks->push($caWeighted + $examWeighted);
+                }
+            }
+
             return [
                 'pupil_id' => $pupilResults->first()->pupil_id,
-                'total' => $total,
+                'total'    => $subjectFinalMarks->avg() ?? 0,
             ];
         })->sortByDesc('total')->values();
 
         $currentPosition = 1;
-        $previousTotal = null;
-        $skipPositions = 0;
-        $position = null;
-        foreach ($pupilTotals as $index => $pupilData) {
+        $previousTotal   = null;
+        $skipPositions   = 0;
+        $position        = null;
+        foreach ($pupilTotals as $pupilData) {
             if ($previousTotal !== $pupilData['total']) {
                 $currentPosition += $skipPositions;
                 $skipPositions = 1;
@@ -399,17 +498,19 @@ class ExamController extends Controller {
             $previousTotal = $pupilData['total'];
         }
 
-        // Determine year based on latest result or current year
-        $year = $examResultsForTerm->isNotEmpty() ? $examResultsForTerm->last()->created_at->format('Y') : now()->format('Y');
+        $year = $examResultsForTerm->isNotEmpty()
+            ? $examResultsForTerm->last()->created_at->format('Y')
+            : now()->format('Y');
 
-        // Pass selected term, exam results, school, position, and year to the PDF view
         $pdf = PDF::loadView('examResults.pdf', [
-            'pupil' => $pupil,
-            'school' => $school,
-            'examResultsForTerm' => $examResultsForTerm,
-            'term' => $term,
-            'position' => $position,
-            'year' => $year,
+            'pupil'               => $pupil,
+            'school'              => $school,
+            'examResultsForTerm'  => $examResultsForTerm,
+            'assessmentsBySubject'=> $assessmentsBySubject,
+            'allCaTitles'         => $allCaTitles,
+            'term'                => $term,
+            'position'            => $position,
+            'year'                => $year,
         ]);
 
         return $pdf->download("exam_results_{$pupil->first_name}_{$term}.pdf");

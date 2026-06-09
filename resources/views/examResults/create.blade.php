@@ -146,6 +146,7 @@
                                 <option value="Changed school">Changed school</option>
                             </select>
                             <input type="hidden" name="single_pupil[pupil_id]" value="{{ $pupilId }}">
+                            <input type="hidden" name="entry_type" value="single">
                         </td>
                     </tr>
                 </tbody>
