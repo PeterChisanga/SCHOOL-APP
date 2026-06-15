@@ -36,7 +36,7 @@
         <i class="fa fa-bars" onclick="showMenu()"></i>
       </nav>
       <div class="text-box">
-        <h1>Our aim is to digitize education in Africa.</h1>
+        <h1>Building a better school together.</h1>
         <p>
           E-school is a platform interested in enhancing parent and teacher
           co-operation in Africa.
@@ -57,7 +57,7 @@
           <a href="/about" class="hero-btn">Learn more</a>
         </div>
         <div class="intro-col">
-          <img src="{{ asset('images/about-final.jpg') }}" alt="" />
+          <img src="{{ asset('images/parents.jpeg') }}" alt="" />
         </div>
       </div>
     </section>

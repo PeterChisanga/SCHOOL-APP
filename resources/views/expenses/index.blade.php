@@ -12,14 +12,13 @@
 
         <a href="{{ route('expenses.create') }}" class="btn btn-primary mb-3">Add New Expense</a>
 
-        <!-- Form to generate PDF report -->
         <div class="mb-4">
-            <form action="{{ route('expenses.exportReport') }}" method="POST">
+            <form id="expenseReportForm">
                 @csrf
                 <div class="form-row align-items-end">
                     <div class="form-group col-md-3">
                         <label for="term">Select Term</label>
-                        <select name="term" id="term" class="form-control" required>
+                        <select name="term" id="exp_term" class="form-control" required>
                             <option value="">-- Select Term --</option>
                             <option value="Term 1">Term 1</option>
                             <option value="Term 2">Term 2</option>
@@ -28,19 +27,49 @@
                     </div>
                     <div class="form-group col-md-3">
                         <label for="year">Select Year</label>
-                        <select name="year" id="year" class="form-control" required>
+                        <select name="year" id="exp_year" class="form-control" required>
                             <option value="">-- Select Year --</option>
-                            @foreach ($years as $year)
-                                <option value="{{ $year }}">{{ $year }}</option>
+                            @foreach($years as $y)
+                                <option value="{{ $y }}">{{ $y }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="form-group col-md-2">
-                        <button type="submit" class="btn btn-primary">Download Report</button>
+                    <div class="form-group col-md-3">
+                        <label>&nbsp;</label>
+                        <div class="dropdown d-block">
+                            <button class="btn btn-primary dropdown-toggle w-100" type="button"
+                                id="expenseReportDropdown" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-download me-1"></i> Download Report
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="expenseReportDropdown">
+                                <a class="dropdown-item" href="#"
+                                    onclick="submitExpenseForm('{{ route('expenses.exportReport') }}')">
+                                    <i class="fas fa-file-pdf me-2 text-danger"></i> Export as PDF
+                                </a>
+                                <a class="dropdown-item" href="#"
+                                    onclick="submitExpenseForm('{{ route('expenses.exportReport.excel') }}')">
+                                    <i class="fas fa-file-excel me-2 text-success"></i> Export as Excel
+                                </a>
+                                <a class="dropdown-item" href="#"
+                                    onclick="submitExpenseForm('{{ route('expenses.exportReport.word') }}')">
+                                    <i class="fas fa-file-word me-2 text-primary"></i> Export as Word
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
+
+        <script>
+            function submitExpenseForm(action) {
+                const form = document.getElementById('expenseReportForm');
+                form.action = action;
+                form.method = 'POST';
+                form.submit();
+            }
+        </script>
 
         <!-- Total Expenses Summary -->
         @if ($totals->isNotEmpty())

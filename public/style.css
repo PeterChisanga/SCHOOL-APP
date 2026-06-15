@@ -8,8 +8,9 @@
 .header {
     min-height: 90vh;
     width: 100%;
-    background-image: linear-gradient(rgba(4, 9, 30, 0.7), rgba(4, 9, 30, 0.7)),
-        url(images/e-school-girl.jpg);
+    background-image:
+        linear-gradient(rgba(4, 9, 30, 0.3), rgba(4, 9, 30, 0.5)),
+        url(images/child.jpeg);
     background-position: center;
     background-size: cover;
     position: relative;
@@ -293,7 +294,9 @@ h3 {
     background-color: #f1ede8;
     border: 1px solid #3a3a3a;
     border-radius: 12px;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease;
 }
 
 .contact-item:hover {
@@ -489,7 +492,9 @@ h3 {
     border: 1px solid #3a3a3a; /* Matches contact-us border */
     border-radius: 12px; /* Matches contact-us radius */
     overflow: hidden;
-    transition: background-color 0.3s ease, border-color 0.3s ease; /* Matches contact-us transition */
+    transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease; /* Matches contact-us transition */
 }
 
 .product-item:hover {
@@ -605,7 +610,8 @@ h3 {
 .cta {
     margin: 100px auto;
     width: 80%;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
         url(images/banner2.jpg);
     background-position: center;
     background-size: cover;
@@ -696,7 +702,9 @@ h3 {
 .social-icons a {
     font-size: 1.5rem;
     color: #ff6b6b;
-    transition: color 0.3s ease, transform 0.3s ease;
+    transition:
+        color 0.3s ease,
+        transform 0.3s ease;
 }
 
 .social-icons a:hover {
@@ -758,7 +766,8 @@ h3 {
 .sub-header {
     height: 50vh;
     width: 100%;
-    background-image: linear-gradient(rgba(4, 9, 30, 0.5), rgba(4, 9, 30, 0.5)),
+    background-image:
+        linear-gradient(rgba(4, 9, 30, 0.5), rgba(4, 9, 30, 0.5)),
         url("images/e-school-boy4-copy.jpg");
     background-position: center;
     background-size: cover;

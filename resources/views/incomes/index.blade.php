@@ -7,11 +7,49 @@
             @if(auth()->user()->isPremium())
                 <a href="{{ route('incomes.create') }}" class="btn btn-success me-2">+ Add Income</a>
 
-                <a href="{{ route('incomes.report', request()->only(['term', 'year'])) }}"
-                class="btn btn-primary me-2">Income Report</a>
+                <div class="dropdown d-inline">
+                    <button class="btn btn-primary dropdown-toggle me-2" type="button"
+                        id="incomeReportDropdown" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-file-invoice-dollar me-1"></i> Income Report
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="incomeReportDropdown">
+                        <a class="dropdown-item"
+                            href="{{ route('incomes.report', request()->only(['term', 'year'])) }}">
+                            <i class="fas fa-file-pdf me-2 text-danger"></i> Export as PDF
+                        </a>
+                        <a class="dropdown-item"
+                            href="{{ route('incomes.report.excel', request()->only(['term', 'year'])) }}">
+                            <i class="fas fa-file-excel me-2 text-success"></i> Export as Excel
+                        </a>
+                        <a class="dropdown-item"
+                            href="{{ route('incomes.report.word', request()->only(['term', 'year'])) }}">
+                            <i class="fas fa-file-word me-2 text-primary"></i> Export as Word
+                        </a>
+                    </div>
+                </div>
 
-                <a href="{{ route('financial.report', request()->only(['term', 'year'])) }}"
-                class="btn btn-secondary">Financial Report</a>
+                <div class="dropdown d-inline">
+                    <button class="btn btn-secondary dropdown-toggle" type="button"
+                        id="financialReportDropdown" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-chart-line me-1"></i> Financial Report
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="financialReportDropdown">
+                        <a class="dropdown-item"
+                            href="{{ route('financial.report', request()->only(['term', 'year'])) }}">
+                            <i class="fas fa-file-pdf me-2 text-danger"></i> Export as PDF
+                        </a>
+                        <a class="dropdown-item"
+                            href="{{ route('financial.report.excel', request()->only(['term', 'year'])) }}">
+                            <i class="fas fa-file-excel me-2 text-success"></i> Export as Excel
+                        </a>
+                        <a class="dropdown-item"
+                            href="{{ route('financial.report.word', request()->only(['term', 'year'])) }}">
+                            <i class="fas fa-file-word me-2 text-primary"></i> Export as Word
+                        </a>
+                    </div>
+                </div>
             @endif
 
         </div>

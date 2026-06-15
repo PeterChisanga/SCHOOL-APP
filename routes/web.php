@@ -110,7 +110,10 @@ Route::group(['middleware' => 'admin'], function() {
 
     Route::resource('secretaries', SecretaryController::class);
     Route::resource('expenses', ExpenseController::class);
-    Route::post('/expenses/export-report', [ExpenseController::class, 'exportReport'])->name('expenses.exportReport');
+    // Expense report routes
+    Route::post('expenses/export-report',       [ExpenseController::class, 'exportReport'])->name('expenses.exportReport');
+    Route::post('expenses/export-report/excel', [ExpenseController::class, 'exportReportExcel'])->name('expenses.exportReport.excel');
+    Route::post('expenses/export-report/word',  [ExpenseController::class, 'exportReportWord'])->name('expenses.exportReport.word');
 
     Route::prefix('payments')->name('payments.')->group(function() {
         Route::get('/select-pupil', [PaymentController::class, 'selectPupil'])->name('select-pupil');
@@ -130,11 +133,16 @@ Route::group(['middleware' => 'admin'], function() {
         Route::get('/{income}/edit', [IncomeController::class, 'edit'])->name('edit');
         Route::put('/{income}', [IncomeController::class, 'update'])->name('update');
         Route::delete('/{income}', [IncomeController::class, 'destroy'])->name('destroy');
-
+        
+        // Income report routes
         Route::get('/report', [IncomeController::class, 'report'])->name('report');
+        Route::get('/report/excel', [IncomeController::class, 'reportExcel'])->name('report.excel');
+        Route::get('/report/word',  [IncomeController::class, 'reportWord'])->name('report.word');
     });
 
     Route::get('incomes/financial-report', [IncomeController::class, 'financialReport'])->name('financial.report');
+    Route::get('incomes/financial-report/excel', [IncomeController::class, 'financialReportExcel'])->name('financial.report.excel');
+    Route::get('incomes/financial-report/word',  [IncomeController::class, 'financialReportWord'])->name('financial.report.word');
 });
 
 
@@ -153,6 +161,11 @@ Route::group(['middleware' => 'secretary'], function() {
     });
 
     Route::resource('expenses', ExpenseController::class);
+    // Expense report routes
+    Route::post('expenses/export-report',       [ExpenseController::class, 'exportReport'])->name('expenses.exportReport');
+    Route::post('expenses/export-report/excel', [ExpenseController::class, 'exportReportExcel'])->name('expenses.exportReport.excel');
+    Route::post('expenses/export-report/word',  [ExpenseController::class, 'exportReportWord'])->name('expenses.exportReport.word');
+
     Route::prefix('incomes')->name('incomes.')->group(function() {
         Route::get('/', [IncomeController::class, 'index'])->name('index');
         Route::get('/create', [IncomeController::class, 'create'])->name('create');
@@ -161,10 +174,15 @@ Route::group(['middleware' => 'secretary'], function() {
         Route::put('/{income}', [IncomeController::class, 'update'])->name('update');
         Route::delete('/{income}', [IncomeController::class, 'destroy'])->name('destroy');
 
+        // Income report routes
         Route::get('/report', [IncomeController::class, 'report'])->name('report');
+        Route::get('/report/excel', [IncomeController::class, 'reportExcel'])->name('report.excel');
+        Route::get('/report/word',  [IncomeController::class, 'reportWord'])->name('report.word');
     });
 
     Route::get('incomes/financial-report', [IncomeController::class, 'financialReport'])->name('financial.report');
+    Route::get('incomes/financial-report/excel', [IncomeController::class, 'financialReportExcel'])->name('financial.report.excel');
+    Route::get('incomes/financial-report/word',  [IncomeController::class, 'financialReportWord'])->name('financial.report.word');
 });
 
 Route::group(['middleware' => 'teacher'], function() {
