@@ -6,7 +6,6 @@
 
   .pp-wrap { padding: 30px 20px 60px; max-width: 860px; margin: 0 auto; }
 
-  /* ── page title ── */
   .pp-header {
     background: linear-gradient(135deg, #0f5132, #1e8449);
     border-radius: 16px;
@@ -25,7 +24,6 @@
   .pp-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; }
   .pp-header p  { font-size: .86rem; opacity: .8; margin: 0; }
 
-  /* ── student info bar ── */
   .pp-student {
     background: #fff;
     border-radius: 14px;
@@ -53,7 +51,6 @@
     font-size: .75rem; font-weight: 600;
   }
 
-  /* ── alerts ── */
   .pp-alert {
     display: flex; align-items: flex-start; gap: 10px;
     padding: 13px 16px; border-radius: 10px;
@@ -64,7 +61,6 @@
   .pp-alert-success { background: #f0faf4; border: 1px solid #a8e0bc; color: #145a32; }
   .pp-alert-info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
 
-  /* ── empty state ── */
   .pp-empty {
     background: #fff; border-radius: 14px;
     padding: 50px 24px; text-align: center;
@@ -74,7 +70,6 @@
   .pp-empty h3 { font-size: 1rem; color: #374151; margin-bottom: 6px; }
   .pp-empty p  { font-size: .85rem; color: #9ca3af; }
 
-  /* ── payment card ── */
   .pp-payment-card {
     background: #fff;
     border-radius: 14px;
@@ -109,7 +104,6 @@
   .pp-status-partial  { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
   .pp-status-unpaid   { background: #fff5f5; color: #991b1b; border: 1px solid #fca5a5; }
 
-  /* amounts */
   .pp-amounts {
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 12px; padding: 20px 24px 0;
@@ -123,7 +117,6 @@
   .pp-amount-box.is-balance .pp-amount-value { color: #dc2626; }
   .pp-amount-box.is-paid    .pp-amount-value { color: #059669; }
 
-  /* progress */
   .pp-progress-wrap { padding: 16px 24px 0; }
   .pp-progress-labels {
     display: flex; justify-content: space-between;
@@ -139,7 +132,6 @@
     border-radius: 100px;
   }
 
-  /* pay form */
   .pp-pay-form-wrap { padding: 0 24px 20px; margin-top: 16px; display: none; }
   .pp-pay-form-wrap.open { display: block; }
   .pp-pay-form-inner {
@@ -151,18 +143,22 @@
     margin: 0 0 16px; display: flex; align-items: center; gap: 7px;
   }
   .pp-pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .pp-pay-field { margin-bottom: 14px; }
   .pp-pay-field label {
     display: block; font-size: .78rem; font-weight: 600;
     color: #374151; margin-bottom: 5px;
   }
-  .pp-pay-field input {
+  .pp-pay-field input,
+  .pp-pay-field select {
     width: 100%; padding: 10px 12px;
     border: 1.5px solid #d1d5db; border-radius: 8px;
     font-size: .88rem; color: #111; outline: none;
     transition: border-color .2s, box-shadow .2s;
     font-family: inherit;
+    background: #fff;
   }
-  .pp-pay-field input:focus {
+  .pp-pay-field input:focus,
+  .pp-pay-field select:focus {
     border-color: #0f5132;
     box-shadow: 0 0 0 3px rgba(15,81,50,.10);
   }
@@ -191,9 +187,7 @@
     box-shadow: 0 3px 10px rgba(15,81,50,.2);
   }
   .pp-btn-pay-toggle:hover { background: #1a7a4a; color: #fff; }
-  .pp-btn-sm { padding: 7px 14px; font-size: .8rem; }
 
-  /* footer row */
   .pp-footer-row { margin-top: 28px; }
 </style>
 
@@ -246,7 +240,6 @@
       <p>There are no payment records for this pupil yet.</p>
     </div>
   @else
-    {{-- Payment cards --}}
     @foreach($payments as $payment)
       @php
         $pct     = $payment->amount > 0 ? min(100, ($payment->amount_paid / $payment->amount) * 100) : 0;
@@ -300,10 +293,12 @@
           </div>
         </div>
 
-        {{-- Pay form toggle --}}
+        {{-- Pay section --}}
         @if(!$cleared)
           <div style="padding: 16px 24px 20px; display:flex; align-items:center; justify-content:space-between;">
-            <span style="font-size:.8rem; color:#6b7280;">Balance due: <strong style="color:#dc2626;">K{{ number_format($payment->balance, 2) }}</strong></span>
+            <span style="font-size:.8rem; color:#6b7280;">
+              Balance due: <strong style="color:#dc2626;">K{{ number_format($payment->balance, 2) }}</strong>
+            </span>
             <button class="pp-btn pp-btn-pay-toggle" onclick="togglePayForm('form-{{ $payment->id }}', this)">
               <i class="fas fa-credit-card"></i> Pay Now
             </button>
@@ -315,13 +310,16 @@
               <h5><i class="fas fa-mobile-alt"></i> Pay via Mobile Money — {{ $payment->type }}</h5>
               <form method="POST" action="{{ route('parent.pay', $payment->id) }}">
                 @csrf
+
+                {{-- Amount + Phone --}}
                 <div class="pp-pay-row">
                   <div class="pp-pay-field">
                     <label>Amount to Pay (K)</label>
                     <input
                       type="number"
                       name="amount_to_pay"
-                      step="0.01" min="0.01"
+                      step="0.01"
+                      min="0.01"
                       max="{{ $payment->balance }}"
                       placeholder="0.00"
                       required
@@ -337,23 +335,39 @@
                       value="{{ $parent->phone ?? '' }}"
                       required
                     />
-                    <p class="pp-field-hint">Airtel or MTN Money number</p>
+                    <p class="pp-field-hint">Number to debit</p>
                   </div>
                 </div>
+
+                {{-- Operator -- THE KEY MISSING FIELD --}}
+                <div class="pp-pay-field">
+                  <label>Mobile Operator</label>
+                  <select name="operator" required>
+                    <option value="">-- Select your network --</option>
+                    <option value="airtel">Airtel Money</option>
+                    <option value="mtn">MTN Mobile Money</option>
+                    <option value="zamtel">Zamtel Kwacha</option>
+                  </select>
+                  <p class="pp-field-hint">Select the network for the number above</p>
+                </div>
+
                 <div class="pp-pay-actions">
-                 <button type="submit" class="pp-btn pp-btn-primary" id="pay-btn-{{ $payment->id }}">
+                  <button type="submit" class="pp-btn pp-btn-primary" id="pay-btn-{{ $payment->id }}">
                     <i class="fas fa-lock"></i> Pay K{{ number_format($payment->balance, 2) }}
-                </button>
+                  </button>
                   <button type="button" class="pp-btn pp-btn-secondary" onclick="togglePayForm('form-{{ $payment->id }}', null)">
                     Cancel
                   </button>
                 </div>
+
               </form>
             </div>
           </div>
         @else
           <div style="padding: 16px 24px 20px;">
-            <span style="color:#059669; font-size:.85rem; font-weight:600;"><i class="fas fa-check-circle"></i> Fully paid — no balance outstanding</span>
+            <span style="color:#059669; font-size:.85rem; font-weight:600;">
+              <i class="fas fa-check-circle"></i> Fully paid — no balance outstanding
+            </span>
           </div>
         @endif
 
@@ -374,19 +388,19 @@
   function togglePayForm(id, btn) {
     const el = document.getElementById(id);
     const isOpen = el.classList.contains('open');
-    // close all
     document.querySelectorAll('.pp-pay-form-wrap').forEach(f => f.classList.remove('open'));
     if (!isOpen) el.classList.add('open');
   }
+
   document.querySelectorAll('input[name="amount_to_pay"]').forEach(input => {
-        input.addEventListener('input', function () {
-            const form = this.closest('form');
-            const btn = form.querySelector('[id^="pay-btn-"]');
-            const val = parseFloat(this.value);
-            if (btn && !isNaN(val) && val > 0) {
-                btn.innerHTML = `<i class="fas fa-lock"></i> Pay K${val.toFixed(2)}`;
-            }
-        });
+    input.addEventListener('input', function () {
+      const form = this.closest('form');
+      const btn  = form.querySelector('[id^="pay-btn-"]');
+      const val  = parseFloat(this.value);
+      if (btn && !isNaN(val) && val > 0) {
+        btn.innerHTML = `<i class="fas fa-lock"></i> Pay K${val.toFixed(2)}`;
+      }
     });
-    </script>
+  });
+</script>
 @endsection

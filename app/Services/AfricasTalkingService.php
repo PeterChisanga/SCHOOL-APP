@@ -22,7 +22,7 @@ class AfricasTalkingService
         return $this->sms->send([
             'to'      => $to,
             'message' => $message,
-            'from'    => config('services.africastalking.from'),
+           // 'from'    => config('services.africastalking.from'),
         ]);
     }
 }

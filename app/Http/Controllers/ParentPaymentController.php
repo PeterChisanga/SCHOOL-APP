@@ -2,17 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OtpVerification;
 use App\Models\ParentModel;
 use App\Models\Pupil;
 use App\Models\Payment;
 use App\Models\PaymentTransaction;
-use App\Services\LipilaService;
+use App\Services\LencoService;
+use App\Services\AfricasTalkingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use App\config\services;
+use Illuminate\Support\Str;
 
 class ParentPaymentController extends Controller
 {
+    // =========================================================================
+    // SEARCH
+    // =========================================================================
+
     public function searchPage()
     {
         return view('parents.search');
@@ -20,7 +27,7 @@ class ParentPaymentController extends Controller
 
     public function searchParent(Request $request)
     {
-        $request->validate(['phone' => 'required']);
+        $request->validate(['phone' => 'required|string']);
 
         $phone     = $request->phone;
         $formatted = $this->formatPhoneNumber($phone);
@@ -39,13 +46,146 @@ class ParentPaymentController extends Controller
             return back()->with('error', 'No pupil linked to this account.');
         }
 
-        session(['current_parent' => $parent]);
+        // Invalidate any previous unused OTPs for this number
+        OtpVerification::where('phone', $formatted)
+            ->where('used', false)
+            ->update(['used' => true]);
 
-        return redirect()->route('parent.payments', ['pupilId' => $pupil->id]);
+        // Generate & store OTP (hashed)
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        
+        
+
+        OtpVerification::create([
+            'phone'      => $formatted,
+            'otp'        => $otp,
+            'expires_at' => now()->addMinutes(10),
+            'used'       => false,
+        ]);
+
+        
+
+        try {
+            (new AfricasTalkingService())->sendSms(
+                $formatted,
+                "Your verification code is: {$otp}. It expires in 10 minutes. Do not share it."
+            );
+        } catch (\Exception $e) {
+            Log::error('OTP SMS send failed', ['phone' => $formatted, 'error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to send verification code. Please try again.');
+        }
+
+        session([
+            'otp_phone'    => $formatted,
+            'otp_pupil_id' => $pupil->id,
+            'otp_verified' => false,
+        ]);
+
+        return redirect()->route('parent.otp.page');
     }
+
+    // =========================================================================
+    // OTP
+    // =========================================================================
+
+    public function otpPage()
+    {
+        if (!session('otp_phone')) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Session expired. Please search again.');
+        }
+
+        return view('parents.otp');
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate(['otp' => 'required|digits:6']);
+
+        $phone = session('otp_phone');
+
+        if (!$phone) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Session expired. Please search again.');
+        }
+
+        $record = OtpVerification::where('phone', $phone)
+                    ->where('used', false)
+                    ->where('expires_at', '>', now())
+                    ->latest()
+                    ->first();
+
+     if (!$record || $request->otp !== $record->otp) {
+            return back()->with('error', 'Invalid or expired code. Please try again.');
+        }
+
+        $record->update(['used' => true]);
+
+        $parent = ParentModel::where('phone', $phone)->first();
+
+        session([
+            'current_parent'     => $parent,
+            'otp_verified'       => true,
+            'otp_verified_phone' => $phone,
+        ]);
+
+        return redirect()->route('parent.payments', ['pupilId' => session('otp_pupil_id')]);
+    }
+
+    public function resendOtp()
+    {
+        $phone = session('otp_phone');
+
+        if (!$phone) {
+            return redirect()->route('parent.search.page');
+        }
+
+        $tooSoon = OtpVerification::where('phone', $phone)
+                    ->where('used', false)
+                    ->where('created_at', '>=', now()->subMinute())
+                    ->exists();
+
+        if ($tooSoon) {
+            return back()->with('error', 'Please wait at least 60 seconds before requesting a new code.');
+        }
+
+        OtpVerification::where('phone', $phone)
+            ->where('used', false)
+            ->update(['used' => true]);
+
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        OtpVerification::create([
+            'phone'      => $phone,
+            'otp'        => $otp,
+            'expires_at' => now()->addMinutes(10),
+            'used'       => false,
+        ]);
+
+        try {
+            (new AfricasTalkingService())->sendSms(
+                $phone,
+                "Your new verification code is: {$otp}. It expires in 10 minutes."
+            );
+        } catch (\Exception $e) {
+            Log::error('OTP resend failed', ['phone' => $phone, 'error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to resend code. Please try again.');
+        }
+
+        return back()->with('success', 'A new verification code has been sent.');
+    }
+
+    // =========================================================================
+    // PAYMENTS
+    // =========================================================================
 
     public function showPayments($pupilId)
     {
+        if (!session('otp_verified')) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Please verify your phone number first.');
+        }
+
         $pupil    = Pupil::findOrFail($pupilId);
         $payments = Payment::where('pupil_id', $pupilId)->get();
         $parent   = session('current_parent');
@@ -55,173 +195,166 @@ class ParentPaymentController extends Controller
 
     public function processPayment(Request $request, $paymentId)
     {
+        if (!session('otp_verified')) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Please verify your phone number first.');
+        }
+
         try {
             $payment = Payment::findOrFail($paymentId);
 
             $validated = $request->validate([
-                'amount_to_pay'  => 'required|numeric|min:0.01|max:' . $payment->balance,
-                'payment_phone'  => 'required|min:10',
-                'email'          => 'nullable|email',
+                'amount_to_pay' => 'required|numeric|min:0.01|max:' . $payment->balance,
+                'payment_phone' => 'required|string',
+                'operator'      => 'required|in:airtel,mtn,zamtel', // ← new field in your form
             ]);
 
-            $phone  = $this->formatPhoneNumber($request->payment_phone);
-            $pupil  = $payment->pupil;
-            $parent = session('current_parent');
+            $parent    = session('current_parent');
+            $reference = 'PAY-' . strtoupper(Str::random(12));
 
-            // Create a pending transaction immediately so we have a record
+            // Create pending transaction
             $transaction = PaymentTransaction::create([
                 'payment_id'      => $payment->id,
                 'amount'          => floatval($validated['amount_to_pay']),
-                'mode_of_payment' => 'MobileMoney',
-                'date'            => now(),
-                'lipila_status'   => 'Pending',
+                'mode_of_payment' => 'Mobile Money',
+                'date'            => now()->toDateString(),
+                'receipt_number'  => $reference,
             ]);
 
-            // Call Lipila
-            $lipila = new LipilaService();
-            $result = $lipila->collectMobileMoney([
-                'amount'        => floatval($validated['amount_to_pay']),
-                'narration'     => 'Payment for ' . $payment->type . ' - ' . $payment->term
-                                    . ' (' . $pupil->first_name . ' ' . $pupil->last_name . ')',
-                'accountNumber' => $phone,
-                'email'         => $request->email ?? $parent->email ?? null,
+            // Call Lenco
+            $gateway = new LencoService();
+            $result  = $gateway->collectMobileMoney([
+                'amount'    => floatval($validated['amount_to_pay']),
+                'phone'     => $this->formatPhoneNumber($validated['payment_phone']),
+                'operator'  => $validated['operator'],
+                'reference' => $reference,
             ]);
 
-            // Update transaction with Lipila response
-            $transaction->update([
-                'lipila_reference_id'  => $result['referenceId'] ?? null,
-                'lipila_status'        => $result['status'] ?? 'Pending',
-                'lipila_payment_type'  => $result['paymentType'] ?? null,
-                'lipila_message'       => $result['message'] ?? null,
-            ]);
+            Log::info('Lenco collectMobileMoney result', ['result' => $result]);
 
-            // Store in session for status page
+            // Lenco returns data.reference (same as what we sent) and data.status
+            $lencoStatus = $result['status'] ?? 'failed';
+
+            // Hard failure
+            if ($lencoStatus === 'failed') {
+                $transaction->delete();
+                return back()->with('error', $result['reasonForFailure'] ?? $result['message'] ?? 'Payment initiation failed. Please try again.');
+            }
+
+            // otp-required: Lenco needs the customer to enter an OTP before proceeding.
+            // Store flag so the status page can render an OTP input if needed.
             session([
-                'lipila_reference_id' => $result['referenceId'] ?? null,
-                'original_payment_id' => $payment->id,
+                'payment_reference'    => $reference,
+                'original_payment_id'  => $payment->id,
+                'transaction_id'       => $transaction->id,
+                'lenco_otp_required'   => ($lencoStatus === 'otp-required'),
             ]);
 
             return redirect()->route('parent.payment.status');
 
         } catch (\Exception $e) {
-            Log::error('ParentPaymentController@processPayment', ['error' => $e->getMessage()]);
-            return back()->with('error', 'Error: ' . $e->getMessage());
+            Log::error('processPayment error', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Something went wrong. Please try again.');
         }
     }
+
+    // =========================================================================
+    // PAYMENT STATUS
+    // =========================================================================
 
     public function checkPaymentStatus()
     {
-        $referenceId       = session('lipila_reference_id');
-        $originalPaymentId = session('original_payment_id');
+        $reference = session('payment_reference');
+        $paymentId = session('original_payment_id');
 
-        if (!$referenceId || !$originalPaymentId) {
-            return redirect()->route('parent.search.page')->with('error', 'Payment session expired.');
+        if (!$reference || !$paymentId) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Payment session expired.');
         }
 
-        $payment = Payment::find($originalPaymentId);
+        $payment    = Payment::find($paymentId);
+        $otpRequired = session('lenco_otp_required', false);
 
-        return view('parents.paymentStatus', compact('referenceId', 'payment'));
+        return view('parents.paymentStatus', compact('reference', 'payment', 'otpRequired'));
     }
 
     /**
-     * Called by the status page via AJAX to poll Lipila for the latest status.
+     * AJAX polling — called by the status page every few seconds.
+     * Returns JSON: { status, message }
+     *
+     * Possible Lenco statuses: pending | successful | failed | pay-offline | otp-required
      */
-    public function getPaymentStatus(Request $request)
+    public function pollStatus(Request $request)
     {
-        $request->validate(['payment_id' => 'required']);
+        $reference = session('payment_reference');
 
-        try {
-            $lipila = new LipilaService();
-            $result = $lipila->checkStatus($request->payment_id);
+        if (!$reference) {
+            return response()->json(['status' => 'failed', 'message' => 'Session expired.'], 400);
+        }
 
-            // If Lipila confirms success, update our records
-            if (($result['status'] ?? '') === 'Successful') {
-                $transaction = PaymentTransaction::where('lipila_reference_id', $request->payment_id)->first();
+        $gateway = new LencoService();
+        $result  = $gateway->checkStatus($reference);
 
-                if ($transaction && $transaction->lipila_status !== 'Successful') {
-                    $transaction->update([
-                        'lipila_status'       => 'Successful',
-                        'lipila_payment_type' => $result['paymentType'] ?? $transaction->lipila_payment_type,
-                        'lipila_message'      => $result['message'] ?? null,
-                    ]);
+        $status = $result['status'] ?? 'failed';
 
-                    $payment = Payment::find($transaction->payment_id);
-                    if ($payment) {
-                        $payment->amount_paid += $transaction->amount;
-                        $payment->balance      = max(0, $payment->amount - $payment->amount_paid);
-                        $payment->save();
-                    }
+        // If now successful, update the payment record
+        if ($status === 'successful') {
+            $transaction = PaymentTransaction::where('receipt_number', $reference)->first();
+            if ($transaction) {
+                $payment = Payment::find($transaction->payment_id);
+                if ($payment && $payment->amount_paid < $payment->amount) {
+                    $payment->amount_paid += $transaction->amount;
+                    $payment->balance      = max(0, $payment->amount - $payment->amount_paid);
+                    $payment->save();
                 }
             }
-
-            // If failed, mark transaction
-            if (($result['status'] ?? '') === 'Failed') {
-                $transaction = PaymentTransaction::where('lipila_reference_id', $request->payment_id)->first();
-                $transaction?->update([
-                    'lipila_status'  => 'Failed',
-                    'lipila_message' => $result['message'] ?? null,
-                ]);
-            }
-
-            return response()->json(['success' => true, 'data' => $result]);
-
-        } catch (\Exception $e) {
-            Log::error('getPaymentStatus', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+
+        return response()->json([
+            'status'  => $status,
+            'message' => $result['reasonForFailure'] ?? $this->statusLabel($status),
+        ]);
     }
 
-    /**
-     * Lipila webhook — called by Lipila server when payment is finalised.
-     * This is the primary/reliable update path; getPaymentStatus() is the fallback.
-     */
-    public function lipilaWebhook(Request $request)
+    // =========================================================================
+    // WEBHOOK
+    // =========================================================================
+
+    public function paymentWebhook(Request $request)
     {
         $rawBody   = $request->getContent();
-        $webhookId = $request->header('webhook-id');
-        $timestamp = $request->header('webhook-timestamp');
-        $signature = $request->header('webhook-signature');
+        $signature = $request->header('X-Lenco-Signature'); // ← Lenco's header name
 
-        // Verify signature
-        $lipila = new LipilaService();
-        if (!$lipila->verifyWebhookSignature($webhookId, $timestamp, $rawBody, $signature)) {
-            Log::warning('Lipila webhook: invalid signature');
+        if (!$signature) {
+            return response()->json(['error' => 'Missing signature'], 401);
+        }
+
+        $gateway = new LencoService();
+
+        if (!$gateway->verifyWebhookSignature($rawBody, $signature)) {
+            Log::warning('Lenco webhook: invalid signature');
             return response()->json(['error' => 'Invalid signature'], 401);
         }
 
-        // Reject stale webhooks (> 5 minutes)
-        if (abs(now()->timestamp - (int) $timestamp) > 300) {
-            return response()->json(['error' => 'Webhook expired'], 400);
-        }
+        $data      = $request->json()->all();
 
-        $data        = $request->json()->all();
-        $referenceId = $data['referenceId'] ?? null;
-        $status      = $data['status'] ?? null;
+        // Lenco webhook payload mirrors the collection response shape
+        $status    = $data['data']['status']    ?? null;
+        $reference = $data['data']['reference'] ?? null;
 
-        if (!$referenceId || !$status) {
+        if (!$reference || !$status) {
             return response()->json(['error' => 'Missing data'], 400);
         }
 
-        $transaction = PaymentTransaction::where('lipila_reference_id', $referenceId)->first();
+        $transaction = PaymentTransaction::where('receipt_number', $reference)->first();
 
         if (!$transaction) {
             return response()->json(['error' => 'Transaction not found'], 404);
         }
 
-        // Idempotency — skip if already finalised
-        if (in_array($transaction->lipila_status, ['Successful', 'Failed'])) {
-            return response()->json(['message' => 'Already processed']);
-        }
-
-        $transaction->update([
-            'lipila_status'       => $status,
-            'lipila_payment_type' => $data['paymentType'] ?? $transaction->lipila_payment_type,
-            'lipila_message'      => $data['message'] ?? null,
-        ]);
-
-        if ($status === 'Successful') {
+        if ($status === 'successful') {
             $payment = Payment::find($transaction->payment_id);
-            if ($payment) {
+            if ($payment && $payment->amount_paid < $payment->amount) {
                 $payment->amount_paid += $transaction->amount;
                 $payment->balance      = max(0, $payment->amount - $payment->amount_paid);
                 $payment->save();
@@ -231,18 +364,34 @@ class ParentPaymentController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
+
     private function formatPhoneNumber(string $phone): string
     {
         $phone = preg_replace('/[^0-9+]/', '', $phone);
 
         if (str_starts_with($phone, '0')) {
-            return '260' . substr($phone, 1);   // Lipila uses 260XXXXXXXXX, not +260
+            return '+260' . substr($phone, 1);
         }
 
-        if (str_starts_with($phone, '+')) {
-            return ltrim($phone, '+');           // strip the + sign
+        if (!str_starts_with($phone, '+')) {
+            return '+' . $phone;
         }
 
         return $phone;
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending'      => 'Waiting for customer to authorise payment.',
+            'pay-offline'  => 'Please complete the payment prompt on your phone.',
+            'otp-required' => 'An OTP has been sent to your phone. Please enter it to continue.',
+            'successful'   => 'Payment completed successfully.',
+            'failed'       => 'Payment failed.',
+            default        => ucfirst($status),
+        };
     }
 }

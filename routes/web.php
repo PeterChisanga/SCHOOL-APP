@@ -18,6 +18,7 @@ use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\ParentPaymentController;
 
 use App\Http\Controllers\LipilaWebhookController;
+use App\Http\Services\LencoService;
 
 
 
@@ -39,14 +40,18 @@ Route::post('/parent/pay/{paymentId}', [ParentPaymentController::class, 'process
 Route::get('/parent/payment/success', [ParentPaymentController::class, 'paymentSuccess'])->name('parent.payment.success');
 Route::post('/tumeny/webhook', [ParentPaymentController::class, 'tumenyWebhook'])->name('tumeny.webhook');
 
-Route::get('/parent/payment/payment-status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
-Route::post('/parent/payment/check-status', [ParentPaymentController::class, 'getPaymentStatus'])->name('parent.payment.check-status');
+// routes/web.php
+Route::get('/parent/otp',         [ParentPaymentController::class, 'otpPage'])->name('parent.otp.page');
+Route::post('/parent/otp/verify', [ParentPaymentController::class, 'verifyOtp'])->name('parent.otp.verify');
+Route::post('/parent/otp/resend', [ParentPaymentController::class, 'resendOtp'])->name('parent.otp.resend');
+
 Route::get('/parent/payment/status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
-Route::post('/parent/payment/get-status', [ParentPaymentController::class, 'getPaymentStatus'])->name('parent.payment.check-status');
+Route::get('/parent/payment/poll-status', [ParentPaymentController::class, 'pollStatus'])->name('parent.payment.poll');
+
 
 // Add this near the Tumeny webhook line — outside any auth middleware
-//Route::post('/lipila/callback', [LipilaWebhookController::class, 'handle'])->name('lipila.callback');
-Route::post('/lipila/callback', [ParentPaymentController::class, 'lipilaWebhook'])->name('lipila.callback');
+
+Route::get('/parent/payment/poll-status', [ParentPaymentController::class, 'pollStatus'])->name('parent.payment.poll');
 
 
 
@@ -198,3 +203,84 @@ Route::get('/subscription/upgrade', function () {
 })->name('subscription.upgrade');
 
 Route::get('/results/send-sms/', [ResultsController::class, 'sendResults']) ->name('results.sendSms');
+
+Route::get('/debug-sms', function () {
+    try {
+        $sms    = new \App\Services\AfricasTalkingService();
+        $result = $sms->sendSms('+260973228432', 'Test OTP: 123456'); // ← your real number
+
+        return response()->json([
+            'success' => true,
+            'result'  => $result,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error'   => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ]);
+    }
+});
+
+// ─── Lenco Payment Test Route ─────────────────────────────────────────────────
+Route::get('/debug-lenco', function () {
+    try {
+        $lenco = new \App\Services\LencoService();
+
+        $result = $lenco->collectMobileMoney([
+            'amount'   => 1.00,              // ZMW 1 test amount
+            'phone'    => '0973228432',      // ← your real number
+            'operator' => 'airtel',          // 'airtel' | 'mtn' | 'zamtel'
+            'bearer'   => 'merchant',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'result'  => $result,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error'   => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ]);
+    }
+});
+
+// Poll status by reference (e.g. /debug-lenco-status?ref=PAY-XXXXXXXXXXXX)
+Route::get('/debug-lenco-status', function (\Illuminate\Http\Request $request) {
+    $ref = $request->query('ref');
+
+    if (! $ref) {
+        return response()->json(['error' => 'Pass ?ref=PAY-XXXX in the URL'], 400);
+    }
+
+    $lenco  = new \App\Services\LencoService();
+    $result = $lenco->checkStatus($ref);
+
+    return response()->json([
+        'reference' => $ref,
+        'result'    => $result,
+    ]);
+});
+
+// Lenco webhook (outside auth + CSRF exempt)
+Route::post('/lenco/callback', function (\Illuminate\Http\Request $request) {
+    $rawBody  = $request->getContent();
+    $sigHeader = $request->header('X-Lenco-Signature', '');
+
+    $lenco = new \App\Services\LencoService();
+
+    if (! $lenco->verifyWebhookSignature($rawBody, $sigHeader)) {
+        \Illuminate\Support\Facades\Log::warning('Lenco webhook: invalid signature');
+        return response()->json(['error' => 'Invalid signature'], 401);
+    }
+
+    $payload = $request->all();
+    \Illuminate\Support\Facades\Log::info('Lenco webhook received', $payload);
+
+    // TODO: update your payment record based on $payload['status']
+
+    return response()->json(['status' => 'received'], 200);
+})->name('lenco.callback');
