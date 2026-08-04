@@ -16,6 +16,8 @@ use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\ParentPaymentController;
+use App\Http\Controllers\Admin\AdminPaymentVerificationController;
+use App\Http\Controllers\Admin\PaymentDetailController;
 
 use App\Http\Controllers\LipilaWebhookController;
 use App\Http\Services\LencoService;
@@ -55,6 +57,34 @@ Route::get('/parent/payment/poll-status', [ParentPaymentController::class, 'poll
 
 
 
+//// manual payment verification routes for admin
+
+// --- Parent-facing: manual payment (bank transfer / reference / proof upload) ---
+Route::get('/parent/payment/{paymentId}/manual', [ParentPaymentController::class, 'showManualPaymentForm'])
+    ->name('parent.manual.payment.form');
+ 
+Route::post('/parent/payment/{paymentId}/manual', [ParentPaymentController::class, 'submitManualPayment'])
+    ->name('parent.manual.payment.submit');
+ 
+Route::get('/parent/payment/manual/submitted', [ParentPaymentController::class, 'manualPaymentSubmitted'])
+    ->name('parent.manual.payment.submitted');
+ 
+// --- Admin: review pending manual payments ---
+// Wrap these in whatever admin auth middleware you already use, e.g. ->middleware(['auth', 'admin'])
+Route::prefix('admin/payment-verification')->name('admin.payment.verification.')->group(function () {
+    Route::get('/', [AdminPaymentVerificationController::class, 'index'])->name('index');
+    Route::post('/{transactionId}/approve', [AdminPaymentVerificationController::class, 'approve'])->name('approve');
+    Route::post('/{transactionId}/reject', [AdminPaymentVerificationController::class, 'reject'])->name('reject');
+});
+ 
+// --- Admin: manage each school's payment details (bank / mobile money) ---
+Route::prefix('admin/schools/{schoolId}/payment-details')->name('admin.payment.details.')->group(function () {
+    Route::get('/', [PaymentDetailController::class, 'show'])->name('show');       // JSON fetch by school_id
+    Route::get('/edit', [PaymentDetailController::class, 'edit'])->name('edit');   // form
+    Route::post('/', [PaymentDetailController::class, 'upsert'])->name('upsert');  // create or update
+});
+
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -68,6 +98,7 @@ Route::get('/products', function () {
     return view('course');
 });
 
+//Route::get('/payment', [ParentPaymentController::class, 'searchPage'])->name('payment.search');
 Route::get('/payment', [ParentPaymentController::class, 'searchPage'])->name('payment.search');
 
 

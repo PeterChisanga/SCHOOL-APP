@@ -6,6 +6,7 @@ use App\Models\OtpVerification;
 use App\Models\ParentModel;
 use App\Models\Pupil;
 use App\Models\Payment;
+use App\Models\PaymentDetail;
 use App\Models\PaymentTransaction;
 use App\Services\LencoService;
 use App\Services\AfricasTalkingService;
@@ -17,7 +18,7 @@ use Illuminate\Support\Str;
 class ParentPaymentController extends Controller
 {
     // =========================================================================
-    // SEARCH
+    // SEARCH parents
     // =========================================================================
 
     public function searchPage()
@@ -53,8 +54,6 @@ class ParentPaymentController extends Controller
 
         // Generate & store OTP (hashed)
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
-        
 
         OtpVerification::create([
             'phone'      => $formatted,
@@ -62,8 +61,6 @@ class ParentPaymentController extends Controller
             'expires_at' => now()->addMinutes(10),
             'used'       => false,
         ]);
-
-        
 
         try {
             (new AfricasTalkingService())->sendSms(
@@ -109,13 +106,12 @@ class ParentPaymentController extends Controller
                 ->with('error', 'Session expired. Please search again.');
         }
 
-        $record = OtpVerification::where('phone', $phone)
-                    ->where('used', false)
-                    ->where('expires_at', '>', now())
-                    ->latest()
-                    ->first();
+      $record = OtpVerification::where('phone', $phone)
+            ->where('otp', $request->otp)
+            ->where('used', false)
+            ->first();
 
-     if (!$record || $request->otp !== $record->otp) {
+        if (!$record) {
             return back()->with('error', 'Invalid or expired code. Please try again.');
         }
 
@@ -176,7 +172,7 @@ class ParentPaymentController extends Controller
     }
 
     // =========================================================================
-    // PAYMENTS
+    // PAYMENTS (overview / choice of method)
     // =========================================================================
 
     public function showPayments($pupilId)
@@ -193,6 +189,10 @@ class ParentPaymentController extends Controller
         return view('parents.payments', compact('pupil', 'payments', 'parent'));
     }
 
+    // =========================================================================
+    // MOBILE MONEY (LENCO) — unchanged
+    // =========================================================================
+
     public function processPayment(Request $request, $paymentId)
     {
         if (!session('otp_verified')) {
@@ -206,7 +206,7 @@ class ParentPaymentController extends Controller
             $validated = $request->validate([
                 'amount_to_pay' => 'required|numeric|min:0.01|max:' . $payment->balance,
                 'payment_phone' => 'required|string',
-                'operator'      => 'required|in:airtel,mtn,zamtel', // ← new field in your form
+                'operator'      => 'required|in:airtel,mtn,zamtel',
             ]);
 
             $parent    = session('current_parent');
@@ -217,6 +217,8 @@ class ParentPaymentController extends Controller
                 'payment_id'      => $payment->id,
                 'amount'          => floatval($validated['amount_to_pay']),
                 'mode_of_payment' => 'Mobile Money',
+                'payment_method'  => 'mobile_money',
+                'status'          => 'pending',
                 'date'            => now()->toDateString(),
                 'receipt_number'  => $reference,
             ]);
@@ -232,7 +234,6 @@ class ParentPaymentController extends Controller
 
             Log::info('Lenco collectMobileMoney result', ['result' => $result]);
 
-            // Lenco returns data.reference (same as what we sent) and data.status
             $lencoStatus = $result['status'] ?? 'failed';
 
             // Hard failure
@@ -241,8 +242,6 @@ class ParentPaymentController extends Controller
                 return back()->with('error', $result['reasonForFailure'] ?? $result['message'] ?? 'Payment initiation failed. Please try again.');
             }
 
-            // otp-required: Lenco needs the customer to enter an OTP before proceeding.
-            // Store flag so the status page can render an OTP input if needed.
             session([
                 'payment_reference'    => $reference,
                 'original_payment_id'  => $payment->id,
@@ -257,10 +256,6 @@ class ParentPaymentController extends Controller
             return back()->with('error', 'Something went wrong. Please try again.');
         }
     }
-
-    // =========================================================================
-    // PAYMENT STATUS
-    // =========================================================================
 
     public function checkPaymentStatus()
     {
@@ -297,17 +292,8 @@ class ParentPaymentController extends Controller
 
         $status = $result['status'] ?? 'failed';
 
-        // If now successful, update the payment record
         if ($status === 'successful') {
-            $transaction = PaymentTransaction::where('receipt_number', $reference)->first();
-            if ($transaction) {
-                $payment = Payment::find($transaction->payment_id);
-                if ($payment && $payment->amount_paid < $payment->amount) {
-                    $payment->amount_paid += $transaction->amount;
-                    $payment->balance      = max(0, $payment->amount - $payment->amount_paid);
-                    $payment->save();
-                }
-            }
+            $this->applyToBalance($reference, $status);
         }
 
         return response()->json([
@@ -316,14 +302,10 @@ class ParentPaymentController extends Controller
         ]);
     }
 
-    // =========================================================================
-    // WEBHOOK
-    // =========================================================================
-
     public function paymentWebhook(Request $request)
     {
         $rawBody   = $request->getContent();
-        $signature = $request->header('X-Lenco-Signature'); // ← Lenco's header name
+        $signature = $request->header('X-Lenco-Signature');
 
         if (!$signature) {
             return response()->json(['error' => 'Missing signature'], 401);
@@ -337,8 +319,6 @@ class ParentPaymentController extends Controller
         }
 
         $data      = $request->json()->all();
-
-        // Lenco webhook payload mirrors the collection response shape
         $status    = $data['data']['status']    ?? null;
         $reference = $data['data']['reference'] ?? null;
 
@@ -346,10 +326,131 @@ class ParentPaymentController extends Controller
             return response()->json(['error' => 'Missing data'], 400);
         }
 
+        $this->applyToBalance($reference, $status);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    // =========================================================================
+    // MANUAL PAYMENT (bank transfer / reference / proof of payment upload)
+    // =========================================================================
+
+    /**
+     * Shows the pupil's school's payment details (bank + mobile money merchant info)
+     * and the form for the parent to submit a reference and/or proof of payment.
+     */
+    public function showManualPaymentForm($paymentId)
+    {
+        if (!session('otp_verified')) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Please verify your phone number first.');
+        }
+
+        $payment = Payment::with('pupil.school')->findOrFail($paymentId);
+        $school  = $payment->pupil->school ?? null;
+
+        if (!$school) {
+            Log::error('Manual payment form: pupil has no linked school', ['payment_id' => $payment->id]);
+            return back()->with('error', 'This pupil has no school on file. Please contact the school office.');
+        }
+
+        $paymentDetail = PaymentDetail::where('school_id', $school->id)->first();
+
+        if (!$paymentDetail) {
+            Log::error('Manual payment form: school has no payment details on file', ['school_id' => $school->id]);
+            return back()->with('error', 'Payment details for this school are not set up yet. Please contact the school office.');
+        }
+
+        return view('parents.manualPayment', compact('payment', 'school', 'paymentDetail'));
+    }
+
+    public function submitManualPayment(Request $request, $paymentId)
+    {
+        if (!session('otp_verified')) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Please verify your phone number first.');
+        }
+
+        try {
+            $payment = Payment::with('pupil.school')->findOrFail($paymentId);
+            $school  = $payment->pupil->school ?? null;
+
+            $validated = $request->validate([
+                'amount_to_pay'    => 'required|numeric|min:0.01|max:' . $payment->balance,
+                'parent_reference' => 'nullable|string|max:150',
+                'proof_of_payment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
+            ]);
+
+            // Require at least one of the two so we have something to verify against
+            if (empty($validated['parent_reference']) && !$request->hasFile('proof_of_payment')) {
+                return back()
+                    ->withErrors(['parent_reference' => 'Please provide a payment reference or upload proof of payment.'])
+                    ->withInput();
+            }
+
+            $proofPath = null;
+            if ($request->hasFile('proof_of_payment')) {
+                // Stored on the 'public' disk — make sure `php artisan storage:link` has been run
+                $proofPath = $request->file('proof_of_payment')->store('proof_of_payments', 'public');
+            }
+
+            $reference = 'MAN-' . strtoupper(Str::random(12));
+
+            $transaction = PaymentTransaction::create([
+                'payment_id'            => $payment->id,
+                'school_id'             => $school->id ?? null,
+                'amount'                => floatval($validated['amount_to_pay']),
+                'mode_of_payment'       => 'Manual - Bank/Mobile Transfer',
+                'payment_method'        => 'manual',
+                'status'                => 'pending',
+                'date'                  => now()->toDateString(),
+                'receipt_number'        => $reference,
+                'parent_reference'      => $validated['parent_reference'] ?? null,
+                'proof_of_payment_path' => $proofPath,
+            ]);
+
+            Log::info('Manual payment submitted for verification', [
+                'payment_id'      => $payment->id,
+                'transaction_id'  => $transaction->id,
+                'reference'       => $reference,
+            ]);
+
+            session(['manual_payment_reference' => $reference]);
+
+            return redirect()->route('parent.manual.payment.submitted')
+                ->with('success', 'Your payment has been submitted and is pending verification. It will be applied to your balance once reviewed.');
+
+        } catch (\Exception $e) {
+            Log::error('submitManualPayment error', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Something went wrong. Please try again.')->withInput();
+        }
+    }
+
+    public function manualPaymentSubmitted()
+    {
+        $reference = session('manual_payment_reference');
+
+        if (!$reference) {
+            return redirect()->route('parent.search.page');
+        }
+
+        return view('parents.manualPaymentSubmitted', compact('reference'));
+    }
+
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
+
+    /**
+     * Applies a successful transaction's amount to the linked payment's balance.
+     * Shared by the Lenco poll/webhook handlers.
+     */
+    private function applyToBalance(string $reference, string $status): void
+    {
         $transaction = PaymentTransaction::where('receipt_number', $reference)->first();
 
-        if (!$transaction) {
-            return response()->json(['error' => 'Transaction not found'], 404);
+        if (!$transaction || $transaction->status === 'successful') {
+            return; // not found, or already applied — avoid double-crediting
         }
 
         if ($status === 'successful') {
@@ -359,14 +460,9 @@ class ParentPaymentController extends Controller
                 $payment->balance      = max(0, $payment->amount - $payment->amount_paid);
                 $payment->save();
             }
+            $transaction->update(['status' => 'successful']);
         }
-
-        return response()->json(['status' => 'ok']);
     }
-
-    // =========================================================================
-    // HELPERS
-    // =========================================================================
 
     private function formatPhoneNumber(string $phone): string
     {

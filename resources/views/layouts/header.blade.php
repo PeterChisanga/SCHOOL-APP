@@ -122,6 +122,24 @@
                             <p>Fee Collections</p>
                         </a>
                     </li>
+
+                    {{-- Manual payment verification queue (bank transfer / mobile money proof review) --}}
+                    <li class="nav-item">
+                        <a href="{{ route('admin.payment.verification.index') }}" class="nav-link">
+                            <i class="far fa-circle nav-icon"></i>
+                            <p>Payment Verification</p>
+                        </a>
+                    </li>
+
+                    {{-- Per-school bank / mobile money details shown to parents --}}
+                    @if (Auth::user()->user_type=='admin')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.payment.details.edit', Auth::user()->school->id) }}" class="nav-link">
+                            <i class="far fa-circle nav-icon"></i>
+                            <p>Payment Details Setup</p>
+                        </a>
+                    </li>
+                    @endif
                 </ul>
             </li>
             @endif
@@ -200,7 +218,8 @@
                     <p>Parent Portal</p>
                 </a>
             </li>
-
+            
+           
             <!-- My Account -->
             <li class="nav-item">
                 <a href="{{ route('users.show') }}" class="nav-link">
