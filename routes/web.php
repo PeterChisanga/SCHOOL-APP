@@ -74,7 +74,7 @@ Route::post('/login', [UserController::class, 'login'])->name('login');
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard.index');
-    });
+    })->name('dashboard');
     Route::get('/users/show', [UserController::class, 'show'])->name('users.show');
     Route::post('/change-password', [UserController::class, 'changePassword'])->name('change-password');
     Route::get('/logout', [UserController::class, 'logout'])->name('logout');
@@ -241,4 +241,6 @@ Route::get('/subscription/upgrade', function () {
     return view('subscription.upgrade');
 })->name('subscription.upgrade');
 
-Route::get('/results/send-sms/', [ResultsController::class, 'sendResults']) ->name('results.sendSms');
+Route::middleware(['auth'])->group(function () {
+    Route::post('/results/send-sms', [ResultsController::class, 'sendResults'])->name('results.sendSms');
+});

@@ -45,8 +45,8 @@
             <!-- Dashboard -->
             {{-- The routes are implemented using a helper functions (app/helpers) to direct users to their respective dashboards --}}
             <li class="nav-item menu-open">
-                <a href="{{ route(dashboardRoute()) }}"
-                class="nav-link {{ request()->routeIs(dashboardRoute()) ? 'active' : '' }}">
+                <a href="{{ Auth::user()->user_type === 'admin' ? route('admin.dashboard') : route('dashboard') }}"
+                class="nav-link {{ request()->routeIs('admin.dashboard', 'dashboard') ? 'active' : '' }}">
 
                     <i class="nav-icon fas fa-tachometer-alt"></i>
                     <p>{{ dashboardLabel() }}</p>
