@@ -13,7 +13,7 @@ class ParentController extends Controller
 {
     public function index() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $parents = ParentModel::where('school_id', $schoolId)->get();
 
             return view('parents.index', compact('parents'));
@@ -42,7 +42,7 @@ class ParentController extends Controller
                 'pupil_id' => 'required|exists:pupils,id',
             ]);
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $parentData = $request->all();
             $parentData['school_id'] = $schoolId;

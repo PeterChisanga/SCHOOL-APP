@@ -10,7 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExpenseController extends Controller {
     public function index() {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $expenses = Expense::where('school_id', $schoolId)->get()->map(function ($expense) {
             $date = Carbon::parse($expense->date);
             $month = $date->month;
@@ -50,7 +50,7 @@ class ExpenseController extends Controller {
         ]);
 
         $expense = new Expense($request->all());
-        $expense->school_id = Auth::user()->school_id;
+        $expense->school_id = $this->currentSchoolId();
         $expense->save();
 
         return redirect()->route('expenses.index')
@@ -58,7 +58,7 @@ class ExpenseController extends Controller {
     }
 
     public function show(Expense $expense) {
-        if ($expense->school_id !== Auth::user()->school_id) {
+        if ($expense->school_id !== $this->currentSchoolId()) {
             return redirect()->route('expenses.index')->with('error', 'Unauthorized access to this expense.');
         }
 
@@ -66,7 +66,7 @@ class ExpenseController extends Controller {
     }
 
     public function edit(Expense $expense) {
-        if ($expense->school_id !== Auth::user()->school_id) {
+        if ($expense->school_id !== $this->currentSchoolId()) {
             return redirect()->route('expenses.index')->with('error', 'Unauthorized access to this expense.');
         }
 
@@ -80,7 +80,7 @@ class ExpenseController extends Controller {
             'date' => 'required|date',
         ]);
 
-        if ($expense->school_id !== Auth::user()->school_id) {
+        if ($expense->school_id !== $this->currentSchoolId()) {
             return redirect()->route('expenses.index')->with('error', 'Unauthorized access to this expense.');
         }
 
@@ -91,7 +91,7 @@ class ExpenseController extends Controller {
     }
 
     public function destroy(Expense $expense) {
-        if ($expense->school_id !== Auth::user()->school_id) {
+        if ($expense->school_id !== $this->currentSchoolId()) {
             return redirect()->route('expenses.index')->with('error', 'Unauthorized access to this expense.');
         }
 
@@ -107,7 +107,7 @@ class ExpenseController extends Controller {
             'year' => 'required|integer|min:2020|max:' . Carbon::today()->year,
         ]);
 
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $term = $request->term;
         $year = $request->year;
 

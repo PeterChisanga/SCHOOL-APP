@@ -6,7 +6,6 @@ use App\Models\OtpVerification;
 use App\Models\ParentModel;
 use App\Models\Pupil;
 use App\Models\Payment;
-use App\Models\PaymentDetail;
 use App\Models\PaymentTransaction;
 use App\Services\LencoService;
 use App\Services\AfricasTalkingService;
@@ -182,8 +181,8 @@ class ParentPaymentController extends Controller
                 ->with('error', 'Please verify your phone number first.');
         }
 
-        $pupil    = Pupil::findOrFail($pupilId);
-        $payments = Payment::where('pupil_id', $pupilId)->get();
+        $pupil    = Pupil::with('school')->findOrFail($pupilId);
+        $payments = Payment::where('pupil_id', $pupilId)->where('balance', '>', 0)->get();
         $parent   = session('current_parent');
 
         return view('parents.payments', compact('pupil', 'payments', 'parent'));
@@ -329,112 +328,6 @@ class ParentPaymentController extends Controller
         $this->applyToBalance($reference, $status);
 
         return response()->json(['status' => 'ok']);
-    }
-
-    // =========================================================================
-    // MANUAL PAYMENT (bank transfer / reference / proof of payment upload)
-    // =========================================================================
-
-    /**
-     * Shows the pupil's school's payment details (bank + mobile money merchant info)
-     * and the form for the parent to submit a reference and/or proof of payment.
-     */
-    public function showManualPaymentForm($paymentId)
-    {
-        if (!session('otp_verified')) {
-            return redirect()->route('parent.search.page')
-                ->with('error', 'Please verify your phone number first.');
-        }
-
-        $payment = Payment::with('pupil.school')->findOrFail($paymentId);
-        $school  = $payment->pupil->school ?? null;
-
-        if (!$school) {
-            Log::error('Manual payment form: pupil has no linked school', ['payment_id' => $payment->id]);
-            return back()->with('error', 'This pupil has no school on file. Please contact the school office.');
-        }
-
-        $paymentDetail = PaymentDetail::where('school_id', $school->id)->first();
-
-        if (!$paymentDetail) {
-            Log::error('Manual payment form: school has no payment details on file', ['school_id' => $school->id]);
-            return back()->with('error', 'Payment details for this school are not set up yet. Please contact the school office.');
-        }
-
-        return view('parents.manualPayment', compact('payment', 'school', 'paymentDetail'));
-    }
-
-    public function submitManualPayment(Request $request, $paymentId)
-    {
-        if (!session('otp_verified')) {
-            return redirect()->route('parent.search.page')
-                ->with('error', 'Please verify your phone number first.');
-        }
-
-        try {
-            $payment = Payment::with('pupil.school')->findOrFail($paymentId);
-            $school  = $payment->pupil->school ?? null;
-
-            $validated = $request->validate([
-                'amount_to_pay'    => 'required|numeric|min:0.01|max:' . $payment->balance,
-                'parent_reference' => 'nullable|string|max:150',
-                'proof_of_payment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
-            ]);
-
-            // Require at least one of the two so we have something to verify against
-            if (empty($validated['parent_reference']) && !$request->hasFile('proof_of_payment')) {
-                return back()
-                    ->withErrors(['parent_reference' => 'Please provide a payment reference or upload proof of payment.'])
-                    ->withInput();
-            }
-
-            $proofPath = null;
-            if ($request->hasFile('proof_of_payment')) {
-                // Stored on the 'public' disk — make sure `php artisan storage:link` has been run
-                $proofPath = $request->file('proof_of_payment')->store('proof_of_payments', 'public');
-            }
-
-            $reference = 'MAN-' . strtoupper(Str::random(12));
-
-            $transaction = PaymentTransaction::create([
-                'payment_id'            => $payment->id,
-                'school_id'             => $school->id ?? null,
-                'amount'                => floatval($validated['amount_to_pay']),
-                'mode_of_payment'       => 'Manual - Bank/Mobile Transfer',
-                'payment_method'        => 'manual',
-                'status'                => 'pending',
-                'date'                  => now()->toDateString(),
-                'receipt_number'        => $reference,
-                'parent_reference'      => $validated['parent_reference'] ?? null,
-                'proof_of_payment_path' => $proofPath,
-            ]);
-
-            Log::info('Manual payment submitted for verification', [
-                'payment_id'      => $payment->id,
-                'transaction_id'  => $transaction->id,
-                'reference'       => $reference,
-            ]);
-
-            session(['manual_payment_reference' => $reference]);
-
-            return redirect()->route('parent.manual.payment.submitted')
-                ->with('success', 'Your payment has been submitted and is pending verification. It will be applied to your balance once reviewed.');
-
-        } catch (\Exception $e) {
-            Log::error('submitManualPayment error', ['error' => $e->getMessage()]);
-            return back()->with('error', 'Something went wrong. Please try again.')->withInput();
-        }
-    }
-
-    public function manualPaymentSubmitted()
-    {
-        $reference = session('manual_payment_reference');
-
-        if (!$reference) {
-            return redirect()->route('parent.search.page');
-        }
-
-        return view('parents.manualPaymentSubmitted', compact('reference'));
     }
 
     // =========================================================================

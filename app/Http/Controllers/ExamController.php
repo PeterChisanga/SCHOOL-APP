@@ -15,7 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class ExamController extends Controller {
 
     public function index(Request $request) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $classes = ClassModel::where('school_id', $schoolId)->get();
         $subjects = Subject::where('school_id', $schoolId)->get();
 
@@ -42,7 +42,7 @@ class ExamController extends Controller {
     }
 
     // public function create(Request $request) {
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
 
     //     $subjects = Subject::where('school_id', $schoolId)->get();
     //     $classes = ClassModel::where('school_id', $schoolId)->get();
@@ -69,7 +69,7 @@ class ExamController extends Controller {
     //         'pupil_results.*.end_of_term_mark' => 'required|numeric|min:0|max:100',
     //     ]);
 
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
 
     //     foreach ($request->input('pupil_results') as $pupilId => $result) {
     //         $pupil = Pupil::findOrFail($pupilId);
@@ -115,7 +115,7 @@ class ExamController extends Controller {
     // }
 
     // public function create(Request $request) {
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
 
     //     $subjects = Subject::where('school_id', $schoolId)->get();
     //     $classes = ClassModel::where('school_id', $schoolId)->get();
@@ -138,7 +138,7 @@ class ExamController extends Controller {
     //         'pupil_results.*.end_of_term_mark' => 'required|numeric|min:0|max:100',
     //     ]);
 
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
 
     //     foreach ($request->input('pupil_results') as $pupilId => $result) {
     //         $pupil = Pupil::findOrFail($pupilId);
@@ -161,7 +161,7 @@ class ExamController extends Controller {
     // }
 
     public function create(Request $request) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         $subjects = Subject::where('school_id', $schoolId)->get();
         $classes = ClassModel::where('school_id', $schoolId)->get();
@@ -178,7 +178,7 @@ class ExamController extends Controller {
     }
 
     // public function store(Request $request) {
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
     //     $isPremium = Auth::user()->isPremium();
 
     //     $validationRules = [
@@ -253,7 +253,7 @@ class ExamController extends Controller {
     // }
 
     public function store(Request $request) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $isPremium = Auth::user()->isPremium();
 
         $validationRules = [
@@ -362,7 +362,7 @@ class ExamController extends Controller {
     }
 
     public function show(ExamResult $examResult) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($examResult->pupil->school_id !== $schoolId) {
             return redirect()->route('examResults.index')
@@ -414,7 +414,7 @@ class ExamController extends Controller {
     }
 
     // public function exportPdf(Pupil $pupil, $term) {
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
 
     //     $school = School::find($schoolId);
 
@@ -473,7 +473,7 @@ class ExamController extends Controller {
     // }
 
     public function exportPdf(Pupil $pupil, $term) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $school = School::find($schoolId);
 
         if ($pupil->school_id !== $schoolId) {
@@ -535,7 +535,7 @@ class ExamController extends Controller {
     }
 
     // public function edit(ExamResult $examResult) {
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
 
     //     if ($examResult->pupil->school_id !== $schoolId) {
     //         return redirect()->route('examResults.index')
@@ -555,7 +555,7 @@ class ExamController extends Controller {
     //         'end_of_term_mark' => 'required|numeric|min:0|max:100',
     //     ]);
 
-    //     $schoolId = Auth::user()->school_id;
+    //     $schoolId = $this->currentSchoolId();
 
     //     if ($examResult->pupil->school_id !== $schoolId) {
     //         return redirect()->route('examResults.index')
@@ -569,7 +569,7 @@ class ExamController extends Controller {
     // }
 
     public function edit(ExamResult $examResult) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($examResult->pupil->school_id !== $schoolId) {
             return redirect()->route('examResults.index')
@@ -582,7 +582,7 @@ class ExamController extends Controller {
     }
 
     public function update(Request $request, ExamResult $examResult) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $isPremium = Auth::user()->isPremium();
 
         if ($examResult->pupil->school_id !== $schoolId) {
@@ -650,7 +650,7 @@ class ExamController extends Controller {
     }
 
     public function destroy(ExamResult $examResult) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($examResult->pupil->school_id !== $schoolId) {
             return redirect()->route('examResults.index')

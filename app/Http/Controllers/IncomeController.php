@@ -11,7 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class IncomeController extends Controller {
     public function index(Request $request) {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $term = $request->input('term');
         $year = $request->input('year');
         $isPremium = auth()->user()->isPremium();
@@ -66,7 +66,7 @@ class IncomeController extends Controller {
         ]);
 
         Income::create([
-            'school_id' => auth()->user()->school_id,
+            'school_id' => $this->currentSchoolId(),
             'amount' => $request->amount,
             'source' => $request->source,
             'description' => $request->description,
@@ -116,7 +116,7 @@ class IncomeController extends Controller {
     }
 
     public function report(Request $request) {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $term     = $request->input('term');
         $year     = $request->input('year');
 
@@ -141,7 +141,7 @@ class IncomeController extends Controller {
         $termLabel = $term ? ucwords(str_replace('_', ' ', $term)) : 'All Terms';
         $yearLabel = $year ?: 'All Years';
 
-        $school = Auth::user()->school;
+        $school = \App\Models\School::find($this->currentSchoolId());
 
         $pdf = Pdf::loadView('incomes.report-pdf', compact(
             'feeIncomes', 'customIncomes', 'grandTotal', 'termLabel', 'yearLabel', 'school'
@@ -151,7 +151,7 @@ class IncomeController extends Controller {
     }
 
     public function financialReport(Request $request) {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $term = $request->input('term');
         $year = $request->input('year');
 
@@ -189,7 +189,7 @@ class IncomeController extends Controller {
         $yearLabel = $year ?: 'All Years';
 
         $pdf = PDF::loadView('reports.financial', [
-            'school'         => auth()->user()->school,
+            'school'         => \App\Models\School::find($this->currentSchoolId()),
             'feeIncomes'     => $feeIncomes,
             'customIncomes'  => $customIncomes,
             'expenses'       => $expenses,
@@ -207,7 +207,7 @@ class IncomeController extends Controller {
 
     // Helper
     private function authorizeSchool($model) {
-        if ($model->school_id !== auth()->user()->school_id) {
+        if ($model->school_id !== $this->currentSchoolId()) {
             abort(403);
         }
     }

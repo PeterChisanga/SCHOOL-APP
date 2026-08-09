@@ -12,7 +12,7 @@ class SubjectController extends Controller
 {
     public function index() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             // Fetch subjects belonging to the authenticated user's school
             $subjects = Subject::where('school_id', $schoolId)->get();
@@ -38,7 +38,7 @@ class SubjectController extends Controller
                 'name' => 'required|string|max:255',
             ]);
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             Subject::create([
                 'name' => $request->input('name'),
@@ -57,7 +57,7 @@ class SubjectController extends Controller
 
     public function show(Subject $subject) {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             if ($subject->school_id !== $schoolId) {
                 return redirect()->route('subjects.index')
@@ -73,7 +73,7 @@ class SubjectController extends Controller
 
     public function edit(Subject $subject) {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             if ($subject->school_id !== $schoolId) {
                 return redirect()->route('subjects.index')
@@ -92,7 +92,7 @@ class SubjectController extends Controller
                 'name' => 'required|string|max:255',
             ]);
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             if ($subject->school_id !== $schoolId) {
                 return redirect()->route('subjects.index')
@@ -115,7 +115,7 @@ class SubjectController extends Controller
 
     public function destroy(Subject $subject) {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             if ($subject->school_id !== $schoolId) {
                 return redirect()->route('subjects.index')

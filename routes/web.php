@@ -16,10 +16,8 @@ use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\ParentPaymentController;
-use App\Http\Controllers\Admin\AdminPaymentVerificationController;
-use App\Http\Controllers\Admin\PaymentDetailController;
-
-use App\Http\Controllers\LipilaWebhookController;
+use App\Http\Controllers\ReconciliationController;
+use App\Http\Controllers\Admin\ReconciliationController as PlatformReconciliationController;
 use App\Http\Services\LencoService;
 
 
@@ -40,7 +38,6 @@ Route::post('/parent/search', [ParentPaymentController::class, 'searchParent'])-
 Route::get('/parent/payments/{pupilId}', [ParentPaymentController::class, 'showPayments'])->name('parent.payments');
 Route::post('/parent/pay/{paymentId}', [ParentPaymentController::class, 'processPayment'])->name('parent.pay');
 Route::get('/parent/payment/success', [ParentPaymentController::class, 'paymentSuccess'])->name('parent.payment.success');
-Route::post('/tumeny/webhook', [ParentPaymentController::class, 'tumenyWebhook'])->name('tumeny.webhook');
 
 // routes/web.php
 Route::get('/parent/otp',         [ParentPaymentController::class, 'otpPage'])->name('parent.otp.page');
@@ -49,40 +46,6 @@ Route::post('/parent/otp/resend', [ParentPaymentController::class, 'resendOtp'])
 
 Route::get('/parent/payment/status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
 Route::get('/parent/payment/poll-status', [ParentPaymentController::class, 'pollStatus'])->name('parent.payment.poll');
-
-
-// Add this near the Tumeny webhook line — outside any auth middleware
-
-Route::get('/parent/payment/poll-status', [ParentPaymentController::class, 'pollStatus'])->name('parent.payment.poll');
-
-
-
-//// manual payment verification routes for admin
-
-// --- Parent-facing: manual payment (bank transfer / reference / proof upload) ---
-Route::get('/parent/payment/{paymentId}/manual', [ParentPaymentController::class, 'showManualPaymentForm'])
-    ->name('parent.manual.payment.form');
- 
-Route::post('/parent/payment/{paymentId}/manual', [ParentPaymentController::class, 'submitManualPayment'])
-    ->name('parent.manual.payment.submit');
- 
-Route::get('/parent/payment/manual/submitted', [ParentPaymentController::class, 'manualPaymentSubmitted'])
-    ->name('parent.manual.payment.submitted');
- 
-// --- Admin: review pending manual payments ---
-// Wrap these in whatever admin auth middleware you already use, e.g. ->middleware(['auth', 'admin'])
-Route::prefix('admin/payment-verification')->name('admin.payment.verification.')->group(function () {
-    Route::get('/', [AdminPaymentVerificationController::class, 'index'])->name('index');
-    Route::post('/{transactionId}/approve', [AdminPaymentVerificationController::class, 'approve'])->name('approve');
-    Route::post('/{transactionId}/reject', [AdminPaymentVerificationController::class, 'reject'])->name('reject');
-});
- 
-// --- Admin: manage each school's payment details (bank / mobile money) ---
-Route::prefix('admin/schools/{schoolId}/payment-details')->name('admin.payment.details.')->group(function () {
-    Route::get('/', [PaymentDetailController::class, 'show'])->name('show');       // JSON fetch by school_id
-    Route::get('/edit', [PaymentDetailController::class, 'edit'])->name('edit');   // form
-    Route::post('/', [PaymentDetailController::class, 'upsert'])->name('upsert');  // create or update
-});
 
 
 Route::get('/', function () {
@@ -175,6 +138,19 @@ Route::group(['middleware' => 'admin'], function() {
     });
 
     Route::get('incomes/financial-report', [IncomeController::class, 'financialReport'])->name('financial.report');
+
+    Route::get('/reconciliation', [ReconciliationController::class, 'index'])->name('reconciliation.index');
+});
+
+Route::group(['middleware' => 'platform_admin'], function() {
+    Route::prefix('admin/reconciliation')->name('admin.reconciliation.')->group(function () {
+        Route::get('/', [PlatformReconciliationController::class, 'index'])->name('index');
+        Route::get('/{school}', [PlatformReconciliationController::class, 'show'])->name('show');
+        Route::post('/{school}/payout', [PlatformReconciliationController::class, 'storePayout'])->name('payout.store');
+    });
+
+    Route::get('/admin/schools/{school}/enter', [SchoolController::class, 'enterDashboard'])->name('schools.enter');
+    Route::get('/admin/schools/exit', [SchoolController::class, 'exitDashboard'])->name('schools.exit');
 });
 
 

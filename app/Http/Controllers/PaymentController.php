@@ -13,7 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class PaymentController extends Controller {
     public function index(Request $request) {
-        $schoolId = auth()->user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         $years = Payment::where('school_id', $schoolId)
                     ->selectRaw('YEAR(created_at) as year')
@@ -40,7 +40,7 @@ class PaymentController extends Controller {
 
     public function create(Pupil $pupil)
     {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         $pupil = Pupil::with(['school', 'class'])->where('school_id', $schoolId)->where('id', $pupil->id)->first();
 
@@ -49,7 +49,7 @@ class PaymentController extends Controller {
 
     public function selectPupil(Request $request)
     {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         $classes = ClassModel::where('school_id', $schoolId)->get();
 
@@ -89,6 +89,8 @@ class PaymentController extends Controller {
             'mode_of_payment' => $request->mode_of_payment,
             'date' => $request->date,
             'deposit_slip_id' => $request->deposit_slip_id ?? null,
+            'payment_method' => 'in_school',
+            'status' => 'successful',
         ]);
 
         $payment->amount_paid += $request->amount_paid;
@@ -115,13 +117,13 @@ class PaymentController extends Controller {
             'amount_paid' => 0,
             'balance' => $request->amount,
             'type' => $request->type,
-            'school_id' => auth()->user()->school_id,
+            'school_id' => $this->currentSchoolId(),
             'pupil_id' => $request->pupil_id,
             'term' => $request->term,
         ]);
 
         // Generate receipt number: YEAR + TIME + SCHOOL ID (zero-padded)
-        $receiptNumber = date('YHis') . str_pad(auth()->user()->school_id, 2, '0', STR_PAD_LEFT);
+        $receiptNumber = date('YHis') . str_pad($this->currentSchoolId(), 2, '0', STR_PAD_LEFT);
 
         $transaction = PaymentTransaction::create([
             'payment_id' => $payment->id,
@@ -130,6 +132,8 @@ class PaymentController extends Controller {
             'date' => $request->date,
             'deposit_slip_id' => $request->deposit_slip_id ?? null,
             'receipt_number' => $receiptNumber,
+            'payment_method' => 'in_school',
+            'status' => 'successful',
         ]);
 
         $payment->amount_paid = $request->amount_paid;
@@ -140,7 +144,7 @@ class PaymentController extends Controller {
     }
 
     public function exportPdf(Payment $payment) {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
         $school = School::find($schoolId);
 
         if ($payment->school_id !== $schoolId) {

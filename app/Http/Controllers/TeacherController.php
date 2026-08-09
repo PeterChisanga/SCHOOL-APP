@@ -14,7 +14,7 @@ use Exception;
 class TeacherController extends Controller {
     public function index() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $teachers = Teacher::where('school_id', $schoolId)->get();
 
             return view('teachers.index', compact('teachers'));
@@ -37,7 +37,7 @@ class TeacherController extends Controller {
 
     public function create() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $classes = ClassModel::where('school_id', $schoolId)->get();
 
             return view('teachers.create', compact('classes'));
@@ -70,7 +70,7 @@ class TeacherController extends Controller {
                 'user_type' => 'teacher',
             ];
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $userData['school_id'] = $schoolId;
 
             $user = User::create($userData);
@@ -106,7 +106,7 @@ class TeacherController extends Controller {
 
     public function edit(Teacher $teacher) {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $classes = ClassModel::where('school_id', $schoolId)->get();
 
             return view('teachers.edit', compact('teacher', 'classes'));

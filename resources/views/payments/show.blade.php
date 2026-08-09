@@ -42,6 +42,7 @@
                 <th>Amount</th>
                 <th>Mode of Payment</th>
                 <th>Deposit Slip ID</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
@@ -51,6 +52,12 @@
                     <td>{{ $transaction->amount }}</td>
                     <td>{{ $transaction->mode_of_payment }}</td>
                     <td>{{ $transaction->deposit_slip_id ?? 'N/A' }}</td>
+                    <td>
+                        @php $status = $transaction->status ?? 'successful'; @endphp
+                        <span class="badge badge-{{ $status === 'successful' ? 'success' : ($status === 'pending' ? 'warning' : 'danger') }}">
+                            {{ ucfirst($status) }}
+                        </span>
+                    </td>
                 </tr>
             @endforeach
         </tbody>

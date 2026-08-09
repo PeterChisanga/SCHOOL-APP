@@ -1,4 +1,9 @@
 @auth
+@php
+    $isPlatformAdmin = Auth::user()->user_type === 'platform_admin';
+    $actingSchoolId = $isPlatformAdmin ? session('acting_school_id') : Auth::user()->school_id;
+    $actingAsAdmin = Auth::user()->user_type === 'admin' || ($isPlatformAdmin && $actingSchoolId);
+@endphp
 <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
         <!-- Left navbar links -->
@@ -11,7 +16,15 @@
          <ul class="navbar-nav mx-auto">
             <li class="nav-item">
                 <span class="nav-link">
-                   <h3 class="text-primary">{{ Auth::user()->school->name ?? 'No School Assigned' }}</h3>
+                   <h3 class="text-primary">
+                        @if ($isPlatformAdmin && ! $actingSchoolId)
+                            Platform Admin
+                        @elseif ($isPlatformAdmin && $actingSchoolId)
+                            {{ optional(\App\Models\School::find($actingSchoolId))->name ?? 'Unknown School' }} <small class="text-muted">(viewing as Platform Admin)</small>
+                        @else
+                            {{ Auth::user()->school->name ?? 'No School Assigned' }}
+                        @endif
+                   </h3>
                 </span>
             </li>
         </ul>
@@ -39,11 +52,42 @@
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        @if ($isPlatformAdmin && ! $actingSchoolId)
+            <!-- Platform Admin -->
+            <li class="nav-item menu-open">
+                <a href="{{ route('admin.reconciliation.index') }}" class="nav-link active">
+                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                    <p>Reconciliation</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('schools.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-school"></i>
+                    <p>Schools</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('logout') }}" class="nav-link">
+                    <i class="nav-icon fas fa-sign-out-alt text-danger"></i>
+                    <p class="text-danger">Logout</p>
+                </a>
+            </li>
+        @else
+            @if ($isPlatformAdmin)
+            <!-- Exit impersonation -->
+            <li class="nav-item">
+                <a href="{{ route('schools.exit') }}" class="nav-link" style="background:#dc3545;">
+                    <i class="nav-icon fas fa-arrow-left"></i>
+                    <p>Exit to Platform Admin</p>
+                </a>
+            </li>
+            @endif
+
             <!-- Dashboard -->
             <li class="nav-item menu-open">
                 <a href="{{ route('admin.dashboard') }}" class="nav-link active">
                     <i class="nav-icon fas fa-tachometer-alt"></i>
-                    @if (Auth::user()->user_type=='admin')
+                    @if ($actingAsAdmin)
                     <p>Admin Dashboard</p>
                     @elseif (Auth::user()->user_type=='teacher')
                     <p>Teacher Dashboard</p>
@@ -54,7 +98,7 @@
             </li>
 
             <!-- Teachers -->
-            @if (Auth::user()->user_type=='admin')
+            @if ($actingAsAdmin)
             <li class="nav-item">
                 <a href="{{ route('teachers.index') }}" class="nav-link">
                     <i class="nav-icon fas fa-chalkboard-teacher"></i>
@@ -64,7 +108,7 @@
             @endif
 
             {{-- secretaries --}}
-            @if (Auth::user()->user_type=='admin')
+            @if ($actingAsAdmin)
             <li class="nav-item">
                 <a href="{{ route('secretaries.index') }}" class="nav-link">
                     <i class="nav-icon fas fa-user-tie"></i>
@@ -90,7 +134,7 @@
             </li>
 
             <!-- Expenses -->
-            @if (Auth::user()->user_type=='admin')
+            @if ($actingAsAdmin)
             <li class="nav-item">
                 <a href="{{ route('expenses.index') }}" class="nav-link">
                     <i class="nav-icon fas fa-money-bill-wave"></i>
@@ -106,7 +150,7 @@
             @endif
 
             <!-- Fees -->
-            @if (Auth::user()->user_type === 'admin' || Auth::user()->user_type === 'secretary')
+            @if ($actingAsAdmin || Auth::user()->user_type === 'secretary')
             <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="nav-icon fas fa-dollar-sign"></i>
@@ -123,20 +167,11 @@
                         </a>
                     </li>
 
-                    {{-- Manual payment verification queue (bank transfer / mobile money proof review) --}}
+                    @if ($actingAsAdmin)
                     <li class="nav-item">
-                        <a href="{{ route('admin.payment.verification.index') }}" class="nav-link">
+                        <a href="{{ route('reconciliation.index') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
-                            <p>Payment Verification</p>
-                        </a>
-                    </li>
-
-                    {{-- Per-school bank / mobile money details shown to parents --}}
-                    @if (Auth::user()->user_type=='admin')
-                    <li class="nav-item">
-                        <a href="{{ route('admin.payment.details.edit', Auth::user()->school->id) }}" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Payment Details Setup</p>
+                            <p>Platform Reconciliation</p>
                         </a>
                     </li>
                     @endif
@@ -154,7 +189,7 @@
                     </p>
                 </a>
                 <ul class="nav nav-treeview">
-                    @if (Auth::user()->user_type=='admin')
+                    @if ($actingAsAdmin)
                     <li class="nav-item">
                         <a href="{{ route('subjects.index') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
@@ -191,7 +226,7 @@
             </li>
 
             <!-- Settings -->
-            @if (Auth::user()->user_type=='admin')
+            @if ($actingAsAdmin)
             <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="nav-icon fas fa-cog"></i>
@@ -202,7 +237,7 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ route('schools.show', Auth::user()->school->id) }}" class="nav-link">
+                        <a href="{{ route('schools.show', $actingSchoolId) }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Customize school details</p>
                         </a>
@@ -235,6 +270,7 @@
                     <p class="text-danger">Logout</p>
                 </a>
             </li>
+        @endif
         </ul>
     </nav>
       <!-- /.sidebar-menu -->

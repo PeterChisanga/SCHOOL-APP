@@ -10,7 +10,7 @@ use PDF;
 
 class ClassController extends Controller {
     public function index() {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         $classes = ClassModel::where('school_id', $schoolId)->get();
 
@@ -28,7 +28,7 @@ class ClassController extends Controller {
             'name' => 'required|string|max:255',
         ]);
 
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         ClassModel::create([
             'name' => $request->input('name'),
@@ -41,7 +41,7 @@ class ClassController extends Controller {
 
     public function show(ClassModel $class)
     {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($class->school_id !== $schoolId) {
             return redirect()->route('classes.index')
@@ -55,7 +55,7 @@ class ClassController extends Controller {
 
     public function exportPdf(ClassModel $class)
     {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($class->school_id !== $schoolId) {
             return redirect()->route('classes.index')
@@ -72,7 +72,7 @@ class ClassController extends Controller {
 
     public function edit(ClassModel $class)
     {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($class->school_id !== $schoolId) {
             return redirect()->route('classes.index')
@@ -88,7 +88,7 @@ class ClassController extends Controller {
             'name' => 'required|string|max:255',
         ]);
 
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($class->school_id !== $schoolId) {
             return redirect()->route('classes.index')
@@ -105,7 +105,7 @@ class ClassController extends Controller {
 
     public function destroy(ClassModel $class)
     {
-        $schoolId = Auth::user()->school_id;
+        $schoolId = $this->currentSchoolId();
 
         if ($class->school_id !== $schoolId) {
             return redirect()->route('classes.index')

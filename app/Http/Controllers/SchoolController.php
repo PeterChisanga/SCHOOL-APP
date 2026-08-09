@@ -11,6 +11,42 @@ use Exception;
 
 class SchoolController extends Controller
 {
+    private function isPlatformAdmin(): bool
+    {
+        return Auth::check() && Auth::user()->user_type === 'platform_admin';
+    }
+
+    public function index() {
+        if (! $this->isPlatformAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $schools = School::orderBy('name')->get();
+
+        return view('schools.index', compact('schools'));
+    }
+
+    public function enterDashboard(School $school) {
+        if (! $this->isPlatformAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        session(['acting_school_id' => $school->id]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Viewing ' . $school->name . '\'s dashboard.');
+    }
+
+    public function exitDashboard() {
+        if (! $this->isPlatformAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        session()->forget('acting_school_id');
+
+        return redirect()->route('schools.index');
+    }
+
     public function create() {
         try {
             return view('schools.create');
@@ -20,6 +56,12 @@ class SchoolController extends Controller
     }
 
     public function store(Request $request) {
+        $user = Auth::user();
+
+        if (! $this->isPlatformAdmin() && $user->school_id !== null) {
+            abort(403, 'You already belong to a school.');
+        }
+
         try {
             $this->validate($request, [
                 'name' => 'required|string|max:255',
@@ -33,9 +75,10 @@ class SchoolController extends Controller
 
             $school = School::create($schoolData);
 
-            $user = User::find($userId);
-            $user->school_id = $school->id;
-            $user->save();
+            if (! $this->isPlatformAdmin()) {
+                $user->school_id = $school->id;
+                $user->save();
+            }
 
             return redirect()->route('admin.dashboard')
                 ->with('success', 'School registered successfully!');
@@ -47,10 +90,12 @@ class SchoolController extends Controller
         }
     }
 
-    public function show() {
+    public function show(School $school) {
+        if (! $this->isPlatformAdmin() && $school->id !== Auth::user()->school_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
         try {
-            $schoolId = Auth::user()->school_id;
-            $school = School::find($schoolId);
             $school->load('users');
 
             return view('schools.show', compact('school'));
@@ -61,6 +106,10 @@ class SchoolController extends Controller
     }
 
     public function edit(School $school) {
+        if (! $this->isPlatformAdmin() && $school->id !== Auth::user()->school_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
         try {
             return view('schools.edit', compact('school'));
         } catch (Exception $e) {
@@ -100,6 +149,10 @@ class SchoolController extends Controller
     // }
 
     public function update(Request $request, School $school) {
+        if (! $this->isPlatformAdmin() && $school->id !== Auth::user()->school_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
         try {
             $this->validate($request, [
                 'name' => 'required|string|max:255',
@@ -136,6 +189,10 @@ class SchoolController extends Controller
     }
 
     public function destroy(School $school) {
+        if (! $this->isPlatformAdmin()) {
+            abort(403, 'Only a platform admin can delete a school.');
+        }
+
         try {
             $school->delete();
 

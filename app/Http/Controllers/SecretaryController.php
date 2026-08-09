@@ -14,7 +14,7 @@ use Exception;
 class SecretaryController extends Controller {
     public function index() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $secretaries = Secretary::where('school_id', $schoolId)->get();
 
             return view('secretaries.index', compact('secretaries'));
@@ -37,7 +37,7 @@ class SecretaryController extends Controller {
 
     public function create() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             return view('secretaries.create');
         } catch (Exception $e) {
@@ -64,7 +64,7 @@ class SecretaryController extends Controller {
                 'user_type' => 'secretary',
             ];
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $userData['school_id'] = $schoolId;
 
             $user = User::create($userData);
@@ -118,7 +118,7 @@ class SecretaryController extends Controller {
                 return redirect()->back()->with('error', 'Associated user not found.');
             }
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
             $secretary->update(['school_id' => $schoolId]);
 
             return redirect('/secretaries')->with('success', 'Secretary updated successfully.');

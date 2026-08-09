@@ -69,6 +69,10 @@ class UserController extends Controller
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
 
+                if ($user->user_type === 'platform_admin') {
+                    return redirect()->route('admin.reconciliation.index');
+                }
+
                 if ($user->school_id !== null) {
                     if ($user->user_type == 'admin') {
                         return redirect('/admin/dashboard');
@@ -97,7 +101,7 @@ class UserController extends Controller
     
     public function adminDashboard() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $studentsCount = Pupil::where('school_id', $schoolId)->count();
             $teachersCount = Teacher::where('school_id', $schoolId)->count();
@@ -123,7 +127,7 @@ class UserController extends Controller
 
     public function teacherDashboard() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $studentsCount = Pupil::where('school_id', $schoolId)->count();
             $teachersCount = Teacher::where('school_id', $schoolId)->count();
@@ -149,7 +153,7 @@ class UserController extends Controller
 
     public function secretaryDashboard() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $studentsCount = Pupil::where('school_id', $schoolId)->count();
             $teachersCount = Teacher::where('school_id', $schoolId)->count();

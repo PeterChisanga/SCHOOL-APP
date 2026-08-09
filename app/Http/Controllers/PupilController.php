@@ -13,7 +13,7 @@ class PupilController extends Controller {
 
     public function index(Request $request) {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $classes = ClassModel::where('school_id', $schoolId)->get();
 
@@ -35,7 +35,7 @@ class PupilController extends Controller {
 
     public function create() {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $classes = ClassModel::where('school_id', $schoolId)->get();
 
@@ -60,7 +60,7 @@ class PupilController extends Controller {
                 'class_id' => 'required|exists:classes,id',
             ]);
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $pupilData = $request->all();
             $pupilData['school_id'] = $schoolId;
@@ -88,7 +88,7 @@ class PupilController extends Controller {
 
     public function edit(Pupil $pupil) {
         try {
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             $classes = ClassModel::where('school_id', $schoolId)->get();
 
@@ -113,7 +113,7 @@ class PupilController extends Controller {
                 'class_id' => 'required|exists:classes,id',
             ]);
 
-            $schoolId = Auth::user()->school_id;
+            $schoolId = $this->currentSchoolId();
 
             if ($pupil->school_id !== $schoolId) {
                 return redirect()->route('pupils.index')

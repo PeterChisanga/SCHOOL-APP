@@ -5,7 +5,10 @@
 
 <div class="pp-wrap">
 
-  <h1 class="pp-title"><i class="fas fa-graduation-cap"></i>&nbsp; {{ $pupil->name ?? 'Pupil' }}'s fees</h1>
+  @php
+    $pupilName = trim(($pupil->first_name ?? '') . ' ' . ($pupil->last_name ?? '')) ?: 'Pupil';
+  @endphp
+  <h1 class="pp-title"><i class="fas fa-graduation-cap"></i>&nbsp; {{ $pupilName }}'s fees</h1>
   <p class="pp-sub">{{ $pupil->school->name ?? 'School' }} · Choose how you'd like to pay for each item below.</p>
 
   @if(session('error'))
@@ -20,35 +23,26 @@
       <div class="pp-card-body">
         <div class="pp-item-top">
           <div>
-            <div class="pp-item-desc">{{ $payment->description ?? 'School Fees' }}</div>
+            <div class="pp-item-desc">{{ $payment->type ?? 'School Fees' }}</div>
             <div class="pp-item-term">{{ $payment->term ?? '' }}</div>
           </div>
           <div>
-            @if($payment->balance > 0)
-              <div class="pp-amount">K{{ number_format($payment->balance, 2) }}</div>
-              <div class="pp-amount-label">balance due</div>
-            @else
-              <span class="pp-paid-pill"><i class="fas fa-check-circle"></i> Fully paid</span>
-            @endif
+            <div class="pp-amount">K{{ number_format($payment->balance, 2) }}</div>
+            <div class="pp-amount-label">balance due</div>
           </div>
         </div>
 
-        @if($payment->balance > 0)
-          <div class="pp-btn-row">
-            <a href="{{ route('parent.manual.payment.form', $payment->id) }}" class="pp-btn pp-btn-secondary">
-              <i class="fas fa-university"></i> Bank / Mobile Money Transfer
-            </a>
-            <button type="button" class="pp-btn pp-btn-primary" onclick="openMomo({{ $payment->id }})">
-              <i class="fas fa-bolt"></i> Pay now (instant)
-            </button>
-          </div>
-        @endif
+        <div class="pp-btn-row">
+          <button type="button" class="pp-btn pp-btn-primary" onclick="openMomo({{ $payment->id }}, {{ $payment->balance }})">
+            <i class="fas fa-bolt"></i> Pay now (instant)
+          </button>
+        </div>
       </div>
     </div>
   @empty
     <div class="pp-empty">
       <div class="big">Nothing due</div>
-      There are no fee items on record for this pupil yet.
+      There are no outstanding fees for this pupil.
     </div>
   @endforelse
 
@@ -60,6 +54,11 @@
     <h3><i class="fas fa-mobile-alt"></i> Pay with mobile money</h3>
     <form id="momoForm" method="POST">
       @csrf
+      <div class="pp-field">
+        <label class="pp-label" for="amount_to_pay">Amount to pay (K)</label>
+        <input type="number" step="0.01" min="0.01" id="amount_to_pay" name="amount_to_pay" class="pp-input" required>
+        <small class="pp-hint" id="momoBalanceHint"></small>
+      </div>
       <div class="pp-field">
         <label class="pp-label" for="payment_phone">Mobile money number</label>
         <input type="text" id="payment_phone" name="payment_phone" class="pp-input" placeholder="e.g. 0961234567" required>
@@ -82,9 +81,15 @@
 </div>
 
 <script>
-function openMomo(paymentId){
+function openMomo(paymentId, balance){
   const template = "{{ route('parent.pay', ['paymentId' => '__ID__']) }}";
   document.getElementById('momoForm').action = template.replace('__ID__', paymentId);
+
+  const amountInput = document.getElementById('amount_to_pay');
+  amountInput.max = balance;
+  amountInput.value = balance;
+  document.getElementById('momoBalanceHint').textContent = 'Balance due: K' + Number(balance).toFixed(2) + ' — enter a smaller amount to pay part of it.';
+
   document.getElementById('momoOverlay').classList.add('open');
 }
 function closeMomo(){
