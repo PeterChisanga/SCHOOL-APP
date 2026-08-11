@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/summernote/summernote-bs4.min.css') }}">
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition sidebar-mini layout-fixed sidebar-collapse">
 
   @include('layouts.header')
 
@@ -73,6 +73,35 @@
 <script src="{{ asset('plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
 <!-- AdminLTE App -->
 <script src="{{ asset('dist/js/adminlte.js') }}"></script>
+<!-- Sidebar state: collapsed by default, remembered across pages -->
+<script>
+  (function () {
+    var KEY = 'e-school.sidebar';
+    var $body = $('body');
+    var $toggle = $('[data-widget="pushmenu"]');
+    var $icon = $toggle.find('i');
+
+    // The icon shows the state at a glance: hamburger when open,
+    // double-chevron pointing right when collapsed (click to expand).
+    function syncToggleIcon() {
+      var collapsed = $body.hasClass('sidebar-collapse');
+      $icon.toggleClass('fa-bars', !collapsed);
+      $icon.toggleClass('fa-angle-double-right', collapsed);
+    }
+
+    // Start collapsed unless the user previously expanded the sidebar
+    if (localStorage.getItem(KEY) === 'expanded') {
+      $body.removeClass('sidebar-collapse');
+    }
+    syncToggleIcon();
+
+    // Save the state whenever AdminLTE PushMenu toggles the sidebar
+    $(document).on('collapsed.lte.pushmenu shown.lte.pushmenu', '[data-widget="pushmenu"]', function () {
+      localStorage.setItem(KEY, $body.hasClass('sidebar-collapse') ? 'collapsed' : 'expanded');
+      syncToggleIcon();
+    });
+  })();
+</script>
 
 
 </body>
