@@ -30,7 +30,8 @@
 
         <div class="form-group">
             <label for="phone">Phone</label>
-            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone', $parent->phone) }}" required>
+            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone', $parent->phone) }}" placeholder="+260 97X XXX XXX" required>
+
             @error('phone')
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>

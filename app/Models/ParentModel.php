@@ -25,4 +25,13 @@ class ParentModel extends Model
     {
         return $this->belongsTo(Pupil::class);
     }
+
+    /**
+     * Store phone numbers in a consistent format (+260...) no matter how
+     * they were entered, so searches and SMS always see the same shape.
+     */
+    public function setPhoneAttribute($value): void
+    {
+        $this->attributes['phone'] = normalizePhoneNumber($value);
+    }
 }
