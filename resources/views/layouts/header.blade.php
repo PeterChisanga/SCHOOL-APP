@@ -1,10 +1,10 @@
 @auth
 <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-        <!-- Left navbar links -->
+        <!-- Left navbar links: sidebar expand/collapse toggle -->
         <ul class="navbar-nav">
         <li class="nav-item">
-            <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button" title="Toggle sidebar"><i class="fas fa-bars"></i></a>
         </li>
         </ul>
 
@@ -32,10 +32,11 @@
 
   <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <!-- Brand Logo -->
-    <a href="" class="brand-link">
-      <span class="brand-text font-weight-light">E-school</span>
-    </a>
+    <!-- Brand corner: E-School label (not a link) -->
+    <div class="brand-link d-flex align-items-center">
+      <i class="fas fa-graduation-cap"></i>
+      <span class="brand-text font-weight-light">E-School</span>
+    </div>
 
     <!-- Sidebar -->
     <div class="sidebar">
@@ -44,7 +45,7 @@
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <!-- Dashboard -->
             {{-- The routes are implemented using a helper functions (app/helpers) to direct users to their respective dashboards --}}
-            <li class="nav-item menu-open">
+            <li class="nav-item">
                 <a href="{{ Auth::user()->user_type === 'admin' ? route('admin.dashboard') : route('dashboard') }}"
                 class="nav-link {{ request()->routeIs('admin.dashboard', 'dashboard') ? 'active' : '' }}">
 
@@ -56,7 +57,7 @@
             <!-- Teachers -->
             @if (Auth::user()->user_type=='admin')
             <li class="nav-item">
-                <a href="{{ route('teachers.index') }}" class="nav-link">
+                <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-chalkboard-teacher"></i>
                     <p>Teachers</p>
                 </a>
@@ -66,7 +67,7 @@
             {{-- seretaries --}}
             @if (Auth::user()->user_type=='admin')
             <li class="nav-item">
-                <a href="{{ route('secretaries.index') }}" class="nav-link">
+                <a href="{{ route('secretaries.index') }}" class="nav-link {{ request()->routeIs('secretaries.*') ? 'active' : '' }}">
                     <i class="nav-icon fas  fa-user-tie"></i>
                     <p>Secretaries</p>
                 </a>
@@ -75,7 +76,7 @@
 
             <!-- Pupils -->
             <li class="nav-item">
-                <a href="{{ route('pupils.index') }}" class="nav-link">
+                <a href="{{ route('pupils.index') }}" class="nav-link {{ request()->routeIs('pupils.*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-user-graduate"></i>
                     <p>Pupils</p>
                 </a>
@@ -83,7 +84,7 @@
 
             <!-- Parents -->
             <li class="nav-item">
-                <a href="{{ route('parents.index') }}" class="nav-link">
+                <a href="{{ route('parents.index') }}" class="nav-link {{ request()->routeIs('parents.*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-users"></i>
                     <p>Parents</p>
                 </a>
@@ -93,27 +94,27 @@
             @if (Auth::user()->user_type === 'admin' || Auth::user()->user_type === 'secretary')
                 <!-- expenses -->
                 <li class="nav-item">
-                    <a href="{{ route('expenses.index') }}" class="nav-link">
+                    <a href="{{ route('expenses.index') }}" class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-money-bill-wave"></i>
                         <p>Expenses</p>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('incomes.index') }}" class="nav-link">
+                    <a href="{{ route('incomes.index') }}" class="nav-link {{ request()->routeIs('incomes.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-chart-line"></i>
                         <p>Incomes</p>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('inventory.index') }}" class="nav-link">
+                    <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-warehouse"></i>
                         <p>
                             Inventory
                         </p>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
+                <li class="nav-item {{ request()->routeIs('payments.*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-dollar-sign"></i>
                         <p>
                             Fee Collection
@@ -122,7 +123,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('payments.index') }}" class="nav-link">
+                            <a href="{{ route('payments.index') }}" class="nav-link {{ request()->routeIs('payments.index') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Fee Collections</p>
                             </a>
@@ -132,8 +133,8 @@
             @endif
 
             <!-- Academics -->
-            <li class="nav-item">
-                <a href="#" class="nav-link">
+            <li class="nav-item {{ request()->routeIs('subjects.*', 'classes.*') ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('subjects.*', 'classes.*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-book"></i>
                     <p>
                         Academics
@@ -142,13 +143,13 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ route('subjects.index') }}" class="nav-link">
+                        <a href="{{ route('subjects.index') }}" class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Subjects</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('classes.index') }}" class="nav-link">
+                        <a href="{{ route('classes.index') }}" class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Classes</p>
                         </a>
@@ -157,8 +158,8 @@
             </li>
 
             <!-- Examinations -->
-            <li class="nav-item">
-                <a href="#" class="nav-link">
+            <li class="nav-item {{ request()->routeIs('examResults.*', 'assessments.*') ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('examResults.*', 'assessments.*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-clipboard"></i>
                     <p>
                         Examinations
@@ -167,13 +168,13 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ route('examResults.index') }}" class="nav-link">
+                        <a href="{{ route('examResults.index') }}" class="nav-link {{ request()->routeIs('examResults.*') ? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Exam Results</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('assessments.index') }}" class="nav-link">
+                        <a href="{{ route('assessments.index') }}" class="nav-link {{ request()->routeIs('assessments.*') ? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Continuous Assessments</p>
                         </a>
@@ -183,8 +184,8 @@
 
             <!-- settings -->
             @if (Auth::user()->user_type=='admin')
-            <li class="nav-item">
-                <a href="#" class="nav-link">
+            <li class="nav-item {{ request()->routeIs('schools.*') ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('schools.*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-cog"></i>
                     <p>
                         Settings
@@ -193,7 +194,7 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ route('schools.show',Auth::user()->school->id) }}" class="nav-link">
+                        <a href="{{ route('schools.show',Auth::user()->school->id) }}" class="nav-link {{ request()->routeIs('schools.show') ? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Customize school details</p>
                         </a>
@@ -223,7 +224,7 @@
 
             <!-- My Account -->
             <li class="nav-item">
-                <a href="{{ route('users.show')}}" class="nav-link">
+                <a href="{{ route('users.show')}}" class="nav-link {{ request()->routeIs('users.show') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-user"></i>
                     <p>My Account</p>
                 </a>

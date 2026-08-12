@@ -33,13 +33,18 @@ class ParentController extends Controller
 
     public function store(Request $request) {
         try {
+            // Normalize the phone first so validation checks the final format
+            $request->merge(['phone' => normalizePhoneNumber($request->input('phone'))]);
+
             $this->validate($request, [
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
-                'phone' => 'required|string|max:20',
+                'phone' => ['required', 'string', 'max:20', 'regex:/^\+260[0-9]{9}$/'],
                 'email' => 'nullable|string|email|max:255',
                 'address' => 'nullable|string|max:255',
                 'pupil_id' => 'required|exists:pupils,id',
+            ], [
+                'phone.regex' => 'The phone number must be a valid Zambian number in the +260XXXXXXXXX format.',
             ]);
 
             $schoolId = Auth::user()->school_id;
@@ -75,13 +80,18 @@ class ParentController extends Controller
 
     public function update(Request $request, ParentModel $parent) {
         try {
+            // Normalize the phone first so validation checks the final format
+            $request->merge(['phone' => normalizePhoneNumber($request->input('phone'))]);
+
             $this->validate($request, [
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
-                'phone' => 'required|string|max:20',
+                'phone' => ['required', 'string', 'max:20', 'regex:/^\+260[0-9]{9}$/'],
                 'email' => 'nullable|string|email|max:255',
                 'address' => 'nullable|string|max:255',
                 'pupil_id' => 'required|exists:pupils,id',
+            ], [
+                'phone.regex' => 'Enter valid phone number',
             ]);
 
             $parent->update($request->all());
