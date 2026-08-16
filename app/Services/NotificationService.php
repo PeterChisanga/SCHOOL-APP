@@ -33,7 +33,7 @@ class NotificationService
     {
         try {
             // >>> replace with the Kapini Technologies email once confirmed <<<
-            Mail::to('kasolobenjamin@gmail.com')->send(new SchoolRegistered(
+            Mail::to(config('services.eschool.email_address'))->send(new SchoolRegistered(
                 $schoolName,
                 $adminName,
                 $adminEmail,

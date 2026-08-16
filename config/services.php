@@ -41,5 +41,8 @@ return [
         'api_key' => env('TUMENY_API_KEY'),
         'api_secret' => env('TUMENY_API_SECRET'),
     ],
+    'eschool' => [
+        'email_address' => env('ESCHOOL_EMAIL_ADDRESS'),
+    ],
 
 ];
