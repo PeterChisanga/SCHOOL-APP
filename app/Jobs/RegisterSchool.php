@@ -28,13 +28,13 @@ class RegisterSchool implements ShouldQueue
         // Hand the collected data over to the notification layer, which
         // arranges it and sends the emails: one to the school admin,
         // one to Kapini Technologies.
-        $notifier->sendWelcomeEmail(
+        /** $notifier->sendWelcomeEmail(
             $this->data['school_name'],
             $this->data['admin_name'],
             $this->data['admin_email'],
             $this->data['admin_phone'],
         );
-
+        */
         $notifier->notifyKapiniOfNewSchool(
             $this->data['school_name'],
             $this->data['admin_name'],
