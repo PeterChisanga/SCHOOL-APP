@@ -12,7 +12,7 @@ class NotificationService
     /**
      * Send the welcome email when a new school is registered.
      */
-    public function sendWelcomeEmail($schoolName, $adminName, $adminEmail, $adminPhone)
+    /** public function sendWelcomeEmail($schoolName, $adminName, $adminEmail, $adminPhone)
     {
         try {
             Mail::to($adminEmail)->send(new SchoolWelcome(
@@ -25,6 +25,7 @@ class NotificationService
             Log::error("Failed to send school welcome email: " . $e->getMessage());
         }
     }
+    */
 
     /**
      * Alert Kapini Technologies when a new school is registered.
