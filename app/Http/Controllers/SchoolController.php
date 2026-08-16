@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\School;
+use App\Jobs\RegisterSchool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -36,6 +37,14 @@ class SchoolController extends Controller
             $user = User::find($userId);
             $user->school_id = $school->id;
             $user->save();
+
+            // Notify the admin that their school has been registered
+            RegisterSchool::dispatch([
+                'school_name' => $school->name,
+                'admin_name' => $user->first_name . ' ' . $user->last_name,
+                'admin_email' => $user->email,
+                'admin_phone' => $user->phone_number,
+            ]);
 
             return redirect()->route('admin.dashboard')
                 ->with('success', 'School registered successfully!');
