@@ -56,7 +56,7 @@ class LencoService
         ]);
 
         try {
-            $response = Http::timeout(30)
+            $response = Http::timeout(120)
                 ->withHeaders($this->defaultHeaders())
                 ->post($url, $payload);
 
@@ -93,10 +93,18 @@ class LencoService
                 'trace'   => $e->getTraceAsString(),
             ]);
 
+            // A timeout (cURL error 28) does NOT mean the payment failed: Lenco
+            // blocks this call until the customer acts on their phone, so the
+            // request can outlive the HTTP timeout. The payment is still in
+            // flight — report it as pending, never failed.
+            $isTimeout = $e->getCode() === 28 || str_contains($e->getMessage(), 'timed out');
+
             return [
                 'reference' => $reference,
-                'status'    => 'failed',
-                'message'   => $e->getMessage(),
+                'status'    => $isTimeout ? 'pending' : 'failed',
+                'message'   => $isTimeout
+                    ? 'Payment initiated — awaiting customer confirmation. Poll checkStatus() with this reference.'
+                    : $e->getMessage(),
             ];
         }
     }
