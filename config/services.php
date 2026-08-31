@@ -32,9 +32,27 @@ return [
     ],
 
     'africastalking' => [
+
         'username' => env('AFRICASTALKING_USERNAME'),
         'api_key'  => env('AFRICASTALKING_API_KEY'),
         'from'     => env('AFRICASTALKING_FROM'),
+
+    'username' => env('AFRICASTALKING_USERNAME'),
+    'api_key'  => env('AFRICASTALKING_API_KEY'),
+    'from'     => env('AFRICASTALKING_FROM'),
+    ],
+    
+    'lipila' => [
+        'api_key'        => env('LIPILA_API_KEY'),
+        'webhook_secret' => env('LIPILA_WEBHOOK_SECRET'),
+    ],
+    'lenco' => [
+        'api_token'  => env('LENCO_API_TOKEN'),
+        'account_id' => env('LENCO_ACCOUNT_ID'),
+        'secret_key' => env('LENCO_SECRET_KEY'), 
+        
+        'webhook_secret' => env('LENCO_WEBHOOK_SECRET'), // your 36-char account UUID
+
     ],
 
     'tumeny' => [

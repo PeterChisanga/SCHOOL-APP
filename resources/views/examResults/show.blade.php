@@ -144,7 +144,6 @@
                                             };
                                         }
                                     @endphp
-
                                     <tr>
                                         {{-- Subject --}}
                                         <td class="fw-bold">{{ $result->subject->name }}</td>

@@ -15,15 +15,19 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\ResultsController;
+
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryCategoryController;
 use App\Http\Controllers\ParentPaymentController;
+use App\Http\Controllers\Admin\AdminPaymentVerificationController;
+use App\Http\Controllers\Admin\PaymentDetailController;
+
 
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Web Routes update
 |--------------------------------------------------------------------------
 |
 | Here is where you can register web routes for your application. These
@@ -31,6 +35,46 @@ use App\Http\Controllers\ParentPaymentController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+// routes/web.php
+Route::get('/parent/otp',         [ParentPaymentController::class, 'otpPage'])->name('parent.otp.page');
+Route::post('/parent/otp/verify', [ParentPaymentController::class, 'verifyOtp'])->name('parent.otp.verify');
+Route::post('/parent/otp/resend', [ParentPaymentController::class, 'resendOtp'])->name('parent.otp.resend');
+
+Route::get('/parent/payment/status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
+Route::get('/parent/payment/poll-status', [ParentPaymentController::class, 'pollStatus'])->name('parent.payment.poll');
+
+
+// Add this near the Tumeny webhook line — outside any auth middleware
+
+
+//// manual payment verification routes for admin
+
+// --- Parent-facing: manual payment (bank transfer / reference / proof upload) ---
+Route::get('/parent/payment/{paymentId}/manual', [ParentPaymentController::class, 'showManualPaymentForm'])
+    ->name('parent.manual.payment.form');
+ 
+Route::post('/parent/payment/{paymentId}/manual', [ParentPaymentController::class, 'submitManualPayment'])
+    ->name('parent.manual.payment.submit');
+ 
+Route::get('/parent/payment/manual/submitted', [ParentPaymentController::class, 'manualPaymentSubmitted'])
+    ->name('parent.manual.payment.submitted');
+ 
+// --- Admin: review pending manual payments ---
+// Wrap these in whatever admin auth middleware you already use, e.g. ->middleware(['auth', 'admin'])
+Route::prefix('admin/payment-verification')->name('admin.payment.verification.')->group(function () {
+    Route::get('/', [AdminPaymentVerificationController::class, 'index'])->name('index');
+    Route::post('/{transactionId}/approve', [AdminPaymentVerificationController::class, 'approve'])->name('approve');
+    Route::post('/{transactionId}/reject', [AdminPaymentVerificationController::class, 'reject'])->name('reject');
+});
+ 
+// --- Admin: manage each school's payment details (bank / mobile money) ---
+Route::prefix('admin/schools/{schoolId}/payment-details')->name('admin.payment.details.')->group(function () {
+    Route::get('/', [PaymentDetailController::class, 'show'])->name('show');       // JSON fetch by school_id
+    Route::get('/edit', [PaymentDetailController::class, 'edit'])->name('edit');   // form
+    Route::post('/', [PaymentDetailController::class, 'upsert'])->name('upsert');  // create or update
+});
+
 
 // Parent Payment Routes
 Route::get('/parent/search', [ParentPaymentController::class, 'searchPage'])->name('parent.search.page');
@@ -60,6 +104,10 @@ Route::get('/contact', function () {
 Route::get('/products', function () {
     return view('course');
 });
+
+//Route::get('/payment', [ParentPaymentController::class, 'searchPage'])->name('payment.search');
+Route::get('/payment', [ParentPaymentController::class, 'searchPage'])->name('payment.search');
+
 
 // User routes
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -241,6 +289,124 @@ Route::get('/subscription/upgrade', function () {
     return view('subscription.upgrade');
 })->name('subscription.upgrade');
 
+
 Route::middleware(['auth'])->group(function () {
     Route::post('/results/send-sms', [ResultsController::class, 'sendResults'])->name('results.sendSms');
 });
+
+Route::get('/results/send-sms/', [ResultsController::class, 'sendResults']) ->name('results.sendSms');
+
+Route::get('/debug-sms', function () {
+    try {
+        $sms    = new \App\Services\AfricasTalkingService();
+        $result = $sms->sendSms('+260973228432', 'Test OTP: 123456'); // ← your real number
+
+        return response()->json([
+            'success' => true,
+            'result'  => $result,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error'   => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ]);
+    }
+});
+
+// ─── Lenco Payment Test Route ─────────────────────────────────────────────────
+// Mirrors the real flow's DB writes (processPayment + applyToBalance) so test
+// payments are inspectable in the database. Test tool only.
+Route::get('/debug-lenco', function (\Illuminate\Http\Request $request) {
+    try {
+        $lenco     = new \App\Services\LencoService();
+        $reference = 'PAY-' . strtoupper(\Illuminate\Support\Str::random(12));
+
+        // Attach the test transaction to a payment (default: latest; override with ?payment_id=N)
+        $payment = \App\Models\Payment::query()
+            ->when($request->query('payment_id'), fn ($q, $id) => $q->whereKey($id))
+            ->latest('id')
+            ->first();
+
+        $result = $lenco->collectMobileMoney([
+            'amount'    => 1.00,              // ZMW 1 test amount
+            'phone'     => '0764648233',      // ← your real number
+            'operator'  => 'mtn',             // 'airtel' | 'mtn' | 'zamtel' — must match the number's network
+            'reference' => $reference,
+            'bearer'    => 'merchant',
+        ]);
+
+        // Write the pending transaction (mirrors processPayment)
+        $transaction = null;
+        if ($payment && ($result['status'] ?? 'failed') !== 'failed') {
+            $transaction = \App\Models\PaymentTransaction::create([
+                'payment_id'      => $payment->id,
+                'amount'          => 1.00,
+                'mode_of_payment' => 'Mobile Money',
+                'payment_method'  => 'mobile_money',
+                'status'          => 'pending',
+                'date'            => now()->toDateString(),
+                'receipt_number'  => $reference,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'result'  => $result,
+            'db'      => $transaction
+                ? ['transaction_id' => $transaction->id, 'payment_id' => $payment->id, 'status' => $transaction->status]
+                : 'no payment row to attach to — pass ?payment_id=N (or payment was rejected)',
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error'   => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ]);
+    }
+});
+
+// Poll status by reference (e.g. /debug-lenco-status?ref=PAY-XXXXXXXXXXXX)
+// Also writes the completion to the DB when Lenco reports success (mirrors applyToBalance).
+Route::get('/debug-lenco-status', function (\Illuminate\Http\Request $request) {
+    $ref = $request->query('ref');
+
+    if (! $ref) {
+        return response()->json(['error' => 'Pass ?ref=PAY-XXXX in the URL'], 400);
+    }
+
+    $lenco  = new \App\Services\LencoService();
+    $result = $lenco->checkStatus($ref);
+
+    // Write completion to the DB (mirrors applyToBalance)
+    $db = null;
+    $transaction = \App\Models\PaymentTransaction::where('receipt_number', $ref)->first();
+    if ($transaction && $transaction->status !== 'successful') {
+        if (($result['status'] ?? '') === 'successful') {
+            $payment = \App\Models\Payment::find($transaction->payment_id);
+            if ($payment && $payment->amount_paid < $payment->amount) {
+                $payment->amount_paid += $transaction->amount;
+                $payment->balance      = max(0, $payment->amount - $payment->amount_paid);
+                $payment->save();
+            }
+            $transaction->update(['status' => 'successful']);
+            $db = [
+                'transaction_id' => $transaction->id,
+                'status'         => 'successful',
+                'payment_balance'=> $payment->balance ?? null,
+            ];
+        }
+    }
+
+    return response()->json([
+        'reference' => $ref,
+        'result'    => $result,
+        'db'        => $db,
+    ]);
+});
+
+// Lenco webhook (outside auth + CSRF exempt) — handled by ParentPaymentController::paymentWebhook,
+// which verifies the signature and credits the payment balance via applyToBalance.
+Route::post('/lenco/callback', [ParentPaymentController::class, 'paymentWebhook'])
+    ->name('lenco.callback');
