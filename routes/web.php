@@ -230,20 +230,47 @@ Route::get('/debug-sms', function () {
 });
 
 // ─── Lenco Payment Test Route ─────────────────────────────────────────────────
-Route::get('/debug-lenco', function () {
+// Mirrors the real flow's DB writes (processPayment + applyToBalance) so test
+// payments are inspectable in the database. Test tool only.
+Route::get('/debug-lenco', function (\Illuminate\Http\Request $request) {
     try {
-        $lenco = new \App\Services\LencoService();
+        $lenco     = new \App\Services\LencoService();
+        $reference = 'PAY-' . strtoupper(\Illuminate\Support\Str::random(12));
+
+        // Attach the test transaction to a payment (default: latest; override with ?payment_id=N)
+        $payment = \App\Models\Payment::query()
+            ->when($request->query('payment_id'), fn ($q, $id) => $q->whereKey($id))
+            ->latest('id')
+            ->first();
 
         $result = $lenco->collectMobileMoney([
-            'amount'   => 1.00,              // ZMW 1 test amount
-            'phone'    => '0973228432',      // ← your real number
-            'operator' => 'airtel',          // 'airtel' | 'mtn' | 'zamtel'
-            'bearer'   => 'merchant',
+            'amount'    => 1.00,              // ZMW 1 test amount
+            'phone'     => '0764648233',      // ← your real number
+            'operator'  => 'mtn',             // 'airtel' | 'mtn' | 'zamtel' — must match the number's network
+            'reference' => $reference,
+            'bearer'    => 'merchant',
         ]);
+
+        // Write the pending transaction (mirrors processPayment)
+        $transaction = null;
+        if ($payment && ($result['status'] ?? 'failed') !== 'failed') {
+            $transaction = \App\Models\PaymentTransaction::create([
+                'payment_id'      => $payment->id,
+                'amount'          => 1.00,
+                'mode_of_payment' => 'Mobile Money',
+                'payment_method'  => 'mobile_money',
+                'status'          => 'pending',
+                'date'            => now()->toDateString(),
+                'receipt_number'  => $reference,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
             'result'  => $result,
+            'db'      => $transaction
+                ? ['transaction_id' => $transaction->id, 'payment_id' => $payment->id, 'status' => $transaction->status]
+                : 'no payment row to attach to — pass ?payment_id=N (or payment was rejected)',
         ]);
 
     } catch (\Exception $e) {
@@ -256,6 +283,7 @@ Route::get('/debug-lenco', function () {
 });
 
 // Poll status by reference (e.g. /debug-lenco-status?ref=PAY-XXXXXXXXXXXX)
+// Also writes the completion to the DB when Lenco reports success (mirrors applyToBalance).
 Route::get('/debug-lenco-status', function (\Illuminate\Http\Request $request) {
     $ref = $request->query('ref');
 
@@ -266,28 +294,34 @@ Route::get('/debug-lenco-status', function (\Illuminate\Http\Request $request) {
     $lenco  = new \App\Services\LencoService();
     $result = $lenco->checkStatus($ref);
 
+    // Write completion to the DB (mirrors applyToBalance)
+    $db = null;
+    $transaction = \App\Models\PaymentTransaction::where('receipt_number', $ref)->first();
+    if ($transaction && $transaction->status !== 'successful') {
+        if (($result['status'] ?? '') === 'successful') {
+            $payment = \App\Models\Payment::find($transaction->payment_id);
+            if ($payment && $payment->amount_paid < $payment->amount) {
+                $payment->amount_paid += $transaction->amount;
+                $payment->balance      = max(0, $payment->amount - $payment->amount_paid);
+                $payment->save();
+            }
+            $transaction->update(['status' => 'successful']);
+            $db = [
+                'transaction_id' => $transaction->id,
+                'status'         => 'successful',
+                'payment_balance'=> $payment->balance ?? null,
+            ];
+        }
+    }
+
     return response()->json([
         'reference' => $ref,
         'result'    => $result,
+        'db'        => $db,
     ]);
 });
 
-// Lenco webhook (outside auth + CSRF exempt)
-Route::post('/lenco/callback', function (\Illuminate\Http\Request $request) {
-    $rawBody  = $request->getContent();
-    $sigHeader = $request->header('X-Lenco-Signature', '');
-
-    $lenco = new \App\Services\LencoService();
-
-    if (! $lenco->verifyWebhookSignature($rawBody, $sigHeader)) {
-        \Illuminate\Support\Facades\Log::warning('Lenco webhook: invalid signature');
-        return response()->json(['error' => 'Invalid signature'], 401);
-    }
-
-    $payload = $request->all();
-    \Illuminate\Support\Facades\Log::info('Lenco webhook received', $payload);
-
-    // TODO: update your payment record based on $payload['status']
-
-    return response()->json(['status' => 'received'], 200);
-})->name('lenco.callback');
+// Lenco webhook (outside auth + CSRF exempt) — handled by ParentPaymentController::paymentWebhook,
+// which verifies the signature and credits the payment balance via applyToBalance.
+Route::post('/lenco/callback', [ParentPaymentController::class, 'paymentWebhook'])
+    ->name('lenco.callback');

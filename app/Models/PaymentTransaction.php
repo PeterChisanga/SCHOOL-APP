@@ -11,13 +11,19 @@ class PaymentTransaction extends Model
 
     protected $fillable = [
         'payment_id',
+        'school_id',
         'amount',
         'mode_of_payment',
+        'payment_method',
+        'status',
         'date',
         'deposit_slip_id',
         'receipt_number',
-        'status',
-        'payment_method',
+        'parent_reference',
+        'proof_of_payment_path',
+        'verified_by',
+        'verified_at',
+        'rejection_reason',
     ];
 
     public function payment()

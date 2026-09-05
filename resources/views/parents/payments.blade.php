@@ -6,10 +6,47 @@
 <div class="pp-wrap">
 
   @php
-    $pupilName = trim(($pupil->first_name ?? '') . ' ' . ($pupil->last_name ?? '')) ?: 'Pupil';
+    $studentName = trim(implode(' ', array_filter([
+        $pupil->first_name ?? '',
+        $pupil->middle_name ?? '',
+        $pupil->last_name  ?? '',
+    ]))) ?: 'Student';
+    $initials = strtoupper(($pupil->first_name[0] ?? '') . ($pupil->last_name[0] ?? ''));
   @endphp
-  <h1 class="pp-title"><i class="fas fa-graduation-cap"></i>&nbsp; {{ $pupilName }}'s fees</h1>
+
+  <h1 class="pp-title"><i class="fas fa-graduation-cap"></i>&nbsp; {{ $studentName }}'s fees</h1>
   <p class="pp-sub">{{ $pupil->school->name ?? 'School' }} · Choose how you'd like to pay for each item below.</p>
+
+  <!-- Who this payment is for -->
+  <div class="pp-card">
+    <div class="pp-card-body">
+      <div class="pp-badge" style="margin-bottom: 0;">
+        <div class="pp-badge-icon">{{ $initials }}</div>
+        <div class="pp-who">
+          <p class="pp-badge-label">Paying for</p>
+          <p class="pp-badge-value">{{ $studentName }}</p>
+        </div>
+      </div>
+      <div class="pp-details-grid">
+        <div class="item">
+          <div class="k">Class</div>
+          <div class="v">{{ $pupil->class->name ?? '—' }}</div>
+        </div>
+        <div class="item">
+          <div class="k">School</div>
+          <div class="v">{{ $pupil->school->name ?? '—' }}</div>
+        </div>
+        <div class="item">
+          <div class="k">Paying as</div>
+          <div class="v">{{ isset($parent->first_name) ? trim($parent->first_name . ' ' . ($parent->last_name ?? '')) : 'Parent' }}</div>
+        </div>
+        <div class="item">
+          <div class="k">Date</div>
+          <div class="v">{{ now()->format('j M Y') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   @if(session('error'))
     <div class="pp-alert pp-alert-danger"><i class="fas fa-exclamation-circle"></i><span>{{ session('error') }}</span></div>
@@ -27,16 +64,22 @@
             <div class="pp-item-term">{{ $payment->term ?? '' }}</div>
           </div>
           <div>
-            <div class="pp-amount">K{{ number_format($payment->balance, 2) }}</div>
-            <div class="pp-amount-label">balance due</div>
+            @if($payment->balance > 0)
+              <div class="pp-amount">K{{ number_format($payment->balance, 2) }}</div>
+              <div class="pp-amount-label">balance due</div>
+            @else
+              <span class="pp-paid-pill"><i class="fas fa-check-circle"></i> Fully paid</span>
+            @endif
           </div>
         </div>
 
-        <div class="pp-btn-row">
-          <button type="button" class="pp-btn pp-btn-primary" onclick="openMomo({{ $payment->id }}, {{ $payment->balance }})">
-            <i class="fas fa-bolt"></i> Pay now (instant)
-          </button>
-        </div>
+        @if($payment->balance > 0)
+          <div class="pp-btn-row">
+            <button type="button" class="pp-btn pp-btn-primary" onclick="openMomo({{ $payment->id }}, {{ $payment->balance }})">
+              <i class="fas fa-bolt"></i> Pay now (instant)
+            </button>
+          </div>
+        @endif
       </div>
     </div>
   @empty
@@ -52,6 +95,9 @@
 <div class="pp-modal-overlay" id="momoOverlay">
   <div class="pp-modal">
     <h3><i class="fas fa-mobile-alt"></i> Pay with mobile money</h3>
+    <p class="pp-meta" style="margin-top: 2px; margin-bottom: 14px;">
+      <i class="fas fa-user-graduate"></i> Paying for <strong>{{ $studentName }}</strong> ({{ $pupil->class->name ?? '—' }})
+    </p>
     <form id="momoForm" method="POST">
       @csrf
       <div class="pp-field">
