@@ -245,6 +245,47 @@ class UserController extends Controller
         }
     }
 
+    public function index() {
+        try {
+            $schoolId = $this->currentSchoolId();
+
+            $users = User::where('school_id', $schoolId)
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get();
+
+            return view('users.index', compact('users'));
+        } catch (Exception $e) {
+            \Log::error('Error fetching users: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to fetch users.');
+        }
+    }
+
+    public function updateUserType(Request $request, User $user) {
+        try {
+            if ($user->school_id !== $this->currentSchoolId()) {
+                return redirect()->route('users.index')->with('error', 'You are not authorized to modify this user.');
+            }
+
+            if ($user->id === Auth::id()) {
+                return redirect()->route('users.index')->with('error', 'You cannot change your own account role.');
+            }
+
+            $this->validate($request, [
+                'user_type' => 'required|in:admin,secretary,teacher',
+            ]);
+
+            $user->update(['user_type' => $request->user_type]);
+
+            return redirect()->route('users.index')->with('success', 'User role updated successfully.');
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator);
+        } catch (Exception $e) {
+            \Log::error('Error updating user role: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update user role.');
+        }
+    }
+
     public function destroy($id) {
         try {
             $user = User::findOrFail($id);

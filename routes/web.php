@@ -101,6 +101,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::group(['middleware' => 'admin'], function() {
     Route::get('/admin/dashboard', [UserController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/admin/users', [UserController::class, 'index'])->name('users.index');
+    Route::patch('/admin/users/{user}/user-type', [UserController::class, 'updateUserType'])->name('users.update-type');
     // Route::resource('teachers', TeacherController::class);
     Route::get('teachers', [TeacherController::class, 'index'])->name('teachers.index');
     Route::get('teachers/create', [TeacherController::class, 'create'])->name('teachers.create');

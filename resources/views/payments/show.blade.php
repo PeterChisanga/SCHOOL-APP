@@ -42,6 +42,7 @@
                 <th>Amount</th>
                 <th>Mode of Payment</th>
                 <th>Deposit Slip ID</th>
+                <th>Source</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -52,6 +53,7 @@
                     <td>{{ $transaction->amount }}</td>
                     <td>{{ $transaction->mode_of_payment }}</td>
                     <td>{{ $transaction->deposit_slip_id ?? 'N/A' }}</td>
+                    <td><span class="badge {{ $transaction->source_badge_class }}">{{ $transaction->source_label }}</span></td>
                     <td>
                         @php $status = $transaction->status ?? 'successful'; @endphp
                         <span class="badge badge-{{ $status === 'successful' ? 'success' : ($status === 'pending' ? 'warning' : 'danger') }}">

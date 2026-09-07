@@ -20,15 +20,23 @@
     @endif
 
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="text-muted">Collected via Platform</h6>
+                    <h6 class="text-muted">Collected via Platform <span class="badge badge-info">Gateway</span></h6>
                     <h4>K {{ number_format($collected, 2) }}</h4>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted">Collected In-School <span class="badge badge-secondary">Manual</span></h6>
+                    <h4>K {{ number_format($manualCollected, 2) }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
                     <h6 class="text-muted">Paid Out to School</h6>
@@ -36,7 +44,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
                     <h6 class="text-muted">Held in Platform</h6>
@@ -45,6 +53,7 @@
             </div>
         </div>
     </div>
+    <p class="text-muted"><small>Only gateway (mobile money) payments pass through the platform's account — manual, in-school payments are shown here for visibility only and are excluded from the payout figures.</small></p>
 
     <h4>Record a Payout</h4>
     <form action="{{ route('admin.reconciliation.payout.store', $school->id) }}" method="POST" class="mb-4">
@@ -100,7 +109,7 @@
         </table>
     </div>
 
-    <h4>Platform Collections (Mobile Money)</h4>
+    <h4>All Payment Transactions</h4>
     <div class="table-responsive">
         <table class="table table-bordered">
             <thead>
@@ -109,6 +118,7 @@
                     <th>Pupil</th>
                     <th>Amount</th>
                     <th>Receipt</th>
+                    <th>Source</th>
                 </tr>
             </thead>
             <tbody>
@@ -118,10 +128,11 @@
                         <td>{{ $transaction->payment->pupil->first_name ?? '' }} {{ $transaction->payment->pupil->last_name ?? '' }}</td>
                         <td>K {{ number_format($transaction->amount, 2) }}</td>
                         <td>{{ $transaction->receipt_number ?? '—' }}</td>
+                        <td><span class="badge {{ $transaction->source_badge_class }}">{{ $transaction->source_label }}</span></td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4">No platform collections recorded yet.</td>
+                        <td colspan="5">No payments recorded yet.</td>
                     </tr>
                 @endforelse
             </tbody>

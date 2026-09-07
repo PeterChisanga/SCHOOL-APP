@@ -117,6 +117,16 @@
             </li>
             @endif
 
+            {{-- users / roles --}}
+            @if ($actingAsAdmin)
+            <li class="nav-item">
+                <a href="{{ route('users.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-user-cog"></i>
+                    <p>Manage Users</p>
+                </a>
+            </li>
+            @endif
+
             <!-- Pupils -->
             <li class="nav-item">
                 <a href="{{ route('pupils.index') }}" class="nav-link">

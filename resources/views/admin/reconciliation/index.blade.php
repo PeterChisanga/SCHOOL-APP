@@ -14,7 +14,8 @@
             <thead>
                 <tr>
                     <th>School</th>
-                    <th>Collected via Platform</th>
+                    <th>Collected via Platform <span class="badge badge-info">Gateway</span></th>
+                    <th>Collected In-School <span class="badge badge-secondary">Manual</span></th>
                     <th>Paid Out to School</th>
                     <th>Held in Platform</th>
                     <th>Actions</th>
@@ -25,6 +26,7 @@
                     <tr>
                         <td>{{ $row['school']->name }}</td>
                         <td>K {{ number_format($row['collected'], 2) }}</td>
+                        <td>K {{ number_format($row['manual_collected'], 2) }}</td>
                         <td>K {{ number_format($row['paid_out'], 2) }}</td>
                         <td>
                             <strong class="{{ $row['held'] > 0 ? 'text-warning' : 'text-success' }}">
@@ -38,7 +40,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5">No schools on record yet.</td>
+                        <td colspan="6">No schools on record yet.</td>
                     </tr>
                 @endforelse
             </tbody>

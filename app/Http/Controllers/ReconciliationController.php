@@ -14,7 +14,6 @@ class ReconciliationController extends Controller
 
         $transactions = PaymentTransaction::with('payment.pupil')
             ->whereHas('payment', fn ($q) => $q->where('school_id', $schoolId))
-            ->where('payment_method', 'mobile_money')
             ->where('status', 'successful')
             ->latest('date')
             ->get();
@@ -23,10 +22,16 @@ class ReconciliationController extends Controller
             ->latest('paid_at')
             ->get();
 
-        $collected = $transactions->sum('amount');
-        $paidOut   = $payouts->sum('amount');
-        $held      = $collected - $paidOut;
+        // Only real gateway collections are ever held by the platform — manual
+        // (in-school) payments go straight to the school, so they're shown for
+        // visibility but kept out of the "held" calculation below. See
+        // PaymentTransaction::getIsGatewayCollectionAttribute() for why this
+        // is based on the receipt number rather than payment_method.
+        $collected       = $transactions->filter(fn ($t) => $t->is_gateway_collection)->sum('amount');
+        $manualCollected = $transactions->sum('amount') - $collected;
+        $paidOut         = $payouts->sum('amount');
+        $held            = $collected - $paidOut;
 
-        return view('reconciliation.index', compact('transactions', 'payouts', 'collected', 'paidOut', 'held'));
+        return view('reconciliation.index', compact('transactions', 'payouts', 'collected', 'manualCollected', 'paidOut', 'held'));
     }
 }
