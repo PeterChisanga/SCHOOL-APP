@@ -57,6 +57,7 @@ class LencoService
 
         try {
             $response = Http::timeout(120)
+                ->withOptions(['curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]])
                 ->withHeaders($this->defaultHeaders())
                 ->post($url, $payload);
 
@@ -131,6 +132,7 @@ class LencoService
 
         try {
             $response = Http::timeout(30)
+                ->withOptions(['curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]])
                 ->withHeaders($this->defaultHeaders())
                 ->get($url);
 
@@ -190,6 +192,7 @@ class LencoService
 
         try {
             $response = Http::timeout(30)
+                ->withOptions(['curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]])
                 ->withHeaders($this->defaultHeaders())
                 ->get($url);
 
