@@ -294,8 +294,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/results/send-sms', [ResultsController::class, 'sendResults'])->name('results.sendSms');
 });
 
-Route::get('/results/send-sms/', [ResultsController::class, 'sendResults']) ->name('results.sendSms');
-
 Route::get('/debug-sms', function () {
     try {
         $sms    = new \App\Services\AfricasTalkingService();
