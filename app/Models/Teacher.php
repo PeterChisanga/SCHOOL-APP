@@ -51,4 +51,12 @@ class Teacher extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * The single class this teacher is the Class Teacher of.
+     */
+    public function class()
+    {
+        return $this->belongsTo(ClassModel::class, 'class_id');
+    }
+
 }

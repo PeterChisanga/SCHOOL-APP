@@ -16,6 +16,22 @@
                 </div>
             </div>
         </div>
+        <!-- Attendance -->
+        <div class="col-lg-3 col-6">
+            <a href="{{ route('attendance.index') }}" class="small-box bg-teal">
+                <div class="inner">
+                    <h3>{{ $attClass ? ($attTakenToday ? $attPresentToday : '—') : '—' }}</h3>
+                    <p>{{ $attClass ? $attClass->name : 'Attendance' }}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <span class="small-box-footer">
+                    {{ $attTakenToday ? 'View today' : ($attClass ? 'Take today\'s register' : 'Open attendance') }}
+                    <i class="fas fa-arrow-circle-right"></i>
+                </span>
+            </a>
+        </div>
         <!-- Number of Teachers -->
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\ExamController;
@@ -73,7 +74,15 @@ Route::post('/login', [UserController::class, 'login'])->name('login');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard.index');
+        // Send each role to its own dashboard (mirrors the login redirect).
+        $dashboardPath = match (Auth::user()->user_type) {
+            'admin'     => '/admin/dashboard',
+            'secretary' => '/secretary/dashboard',
+            'teacher'   => '/teacher/dashboard',
+            default     => '/parent/dashboard',
+        };
+
+        return redirect($dashboardPath);
     })->name('dashboard');
     Route::get('/users/show', [UserController::class, 'show'])->name('users.show');
     Route::post('/change-password', [UserController::class, 'changePassword'])->name('change-password');
@@ -188,6 +197,14 @@ Route::group(['middleware' => 'secretary'], function() {
 Route::group(['middleware' => 'teacher'], function() {
     Route::get('/teacher/dashboard', [UserController::class, 'teacherDashboard'])->name('teacher.dashboard');
 
+    // Class attendance / register
+    Route::prefix('teacher/attendance')->name('attendance.')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
+        Route::get('register', [AttendanceController::class, 'register'])->name('register');
+        Route::post('/', [AttendanceController::class, 'store'])->name('store');
+        Route::get('stats', [AttendanceController::class, 'summary'])->name('stats');
+        Route::get('days', [AttendanceController::class, 'days'])->name('days');
+    });
 });
 
 Route::group(['middleware' => 'parent'], function() {
