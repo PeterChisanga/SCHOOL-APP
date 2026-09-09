@@ -6,30 +6,16 @@
     <div class="row">
         <!-- Number of Students -->
         <div class="col-lg-3 col-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $studentsCount }}</h3>
-                    <p>Students</p>
+            <a href="{{ route('pupils.index') }}" style="display:block; text-decoration:none; color:inherit;">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ $studentsCount }}</h3>
+                        <p>Students</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-            </div>
-        </div>
-        <!-- Attendance -->
-        <div class="col-lg-3 col-6">
-            <a href="{{ route('attendance.index') }}" class="small-box bg-teal">
-                <div class="inner">
-                    <h3>{{ $attClass ? ($attTakenToday ? $attPresentToday : '—') : '—' }}</h3>
-                    <p>{{ $attClass ? $attClass->name : 'Attendance' }}</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-clipboard-check"></i>
-                </div>
-                <span class="small-box-footer">
-                    {{ $attTakenToday ? 'View today' : ($attClass ? 'Take today\'s register' : 'Open attendance') }}
-                    <i class="fas fa-arrow-circle-right"></i>
-                </span>
             </a>
         </div>
         <!-- Number of Teachers -->
@@ -46,39 +32,63 @@
         </div>
         <!-- Number of Parents -->
         <div class="col-lg-3 col-6">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ $parentsCount }}</h3>
-                    <p>Parents</p>
+            <a href="{{ route('parents.index') }}" style="display:block; text-decoration:none; color:inherit;">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{ $parentsCount }}</h3>
+                        <p>Parents</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
+            </a>
         </div>
         <!-- Number of Classes -->
         <div class="col-lg-3 col-6">
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>{{ $classesCount }}</h3>
-                    <p>Classes</p>
+            <a href="{{ route('classes.index') }}" style="display:block; text-decoration:none; color:inherit;">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>{{ $classesCount }}</h3>
+                        <p>Classes</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-school"></i>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-school"></i>
-                </div>
-            </div>
+            </a>
         </div>
         <!-- Number of Subjects -->
         <div class="col-lg-3 col-6">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    <h3>{{ $subjectsCount }}</h3>
-                    <p>Subjects</p>
+            <a href="{{ route('subjects.index') }}" style="display:block; text-decoration:none; color:inherit;">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>{{ $subjectsCount }}</h3>
+                        <p>Subjects</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-book"></i>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-book"></i>
+            </a>
+        </div>
+        <!-- Attendance -->
+        <div class="col-lg-3 col-6">
+            <a href="{{ route('attendance.index') }}" style="display:block; text-decoration:none; color:inherit;">
+                <div class="small-box bg-teal">
+                    <div class="inner">
+                        <h3>{{ $attClass ? ($attTakenToday ? $attPresentToday : '—') : '—' }}</h3>
+                        <p>{{ $attClass ? $attClass->name : 'Attendance' }}</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <span class="small-box-footer">
+                        {{ $attTakenToday ? 'View today' : ($attClass ? "Take today's register" : 'Open attendance') }}
+                        <i class="fas fa-arrow-circle-right"></i>
+                    </span>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
