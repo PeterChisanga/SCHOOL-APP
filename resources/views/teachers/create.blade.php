@@ -79,6 +79,19 @@
                         @endforeach
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label for="class_id">Class Teacher of (Class)</label>
+                    <select class="form-control" id="class_id" name="class_id">
+                        <option value="">-- None --</option>
+                        @foreach ($classes as $class)
+                            <option value="{{ $class->id }}" @selected(old('class_id') == $class->id)>
+                                {{ $class->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">Optional. The one class this teacher is in charge of and takes attendance for.</small>
+                </div>
             </div>
 
             <div class="col-md-6">
