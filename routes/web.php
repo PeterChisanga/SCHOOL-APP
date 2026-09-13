@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Admin\AdminAttendanceController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SchoolController;
@@ -252,6 +253,16 @@ Route::group(['middleware' => 'teacher'], function() {
         Route::post('/', [AttendanceController::class, 'store'])->name('store');
         Route::get('stats', [AttendanceController::class, 'summary'])->name('stats');
         Route::get('days', [AttendanceController::class, 'days'])->name('days');
+        Route::get('pdf', [AttendanceController::class, 'pdf'])->name('pdf');
+    });
+});
+
+Route::group(['middleware' => 'admin'], function () {
+    // Admin attendance oversight (read-only, whole school)
+    Route::prefix('admin/attendance')->name('admin.attendance.')->group(function () {
+        Route::get('/', [AdminAttendanceController::class, 'index'])->name('index');
+        Route::get('classes/{class}', [AdminAttendanceController::class, 'show'])->name('show');
+        Route::get('classes/{class}/pdf', [AdminAttendanceController::class, 'pdf'])->name('pdf');
     });
 });
 

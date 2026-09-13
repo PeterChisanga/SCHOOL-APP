@@ -90,6 +90,16 @@
                 </a>
             </li>
 
+            <!-- Attendance (admin oversight) -->
+            @if (Auth::user()->user_type === 'admin')
+            <li class="nav-item">
+                <a href="{{ route('admin.attendance.index') }}" class="nav-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-clipboard-check"></i>
+                    <p>Attendance</p>
+                </a>
+            </li>
+            @endif
+
             <!-- Financials -->
             @if (Auth::user()->user_type === 'admin' || Auth::user()->user_type === 'secretary')
                 <!-- expenses -->

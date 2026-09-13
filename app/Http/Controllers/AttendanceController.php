@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\ClassModel;
+use App\Models\School;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PDF;
 
 class AttendanceController extends Controller
 {
@@ -119,6 +121,39 @@ class AttendanceController extends Controller
         return redirect()
             ->route('attendance.register', ['date' => $data['date']])
             ->with('success', "Register saved for {$data['date']} — {$present} of {$roster->count()} pupils present.");
+    }
+
+    /**
+     * Printable daily attendance sheet for the class teacher's own class.
+     */
+    public function pdf(Request $request)
+    {
+        $class = $this->myClass();
+
+        if (!$class) {
+            return redirect()->route('attendance.index')->with('error', 'You are not set as the Class Teacher of any class yet.');
+        }
+
+        $date = $request->input('date', now()->toDateString());
+
+        if (!$this->validDate($date)) {
+            return redirect()->route('attendance.index')->with('error', 'Please pick today or an earlier date.');
+        }
+
+        $school = School::find(Auth::user()->school_id);
+        $pupils = $class->pupils()
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+        $existing = Attendance::where('class_id', $class->id)
+            ->where('date', $date)
+            ->pluck('status', 'pupil_id')
+            ->toArray();
+        $teacher = $this->currentTeacher();
+
+        $pdf = PDF::loadView('attendance.pdf', compact('school', 'class', 'date', 'pupils', 'existing', 'teacher'));
+
+        return $pdf->download('attendance_' . str_replace(' ', '_', $class->name) . '_' . $date . '.pdf');
     }
 
     /**
