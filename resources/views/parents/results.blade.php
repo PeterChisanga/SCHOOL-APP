@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.payment-theme')
+
+<div class="pp-wrap pp-wide">
+
+    @include('partials.parent-portal-nav')
+
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
 
         <!-- Title - Smaller on mobile -->
@@ -127,4 +133,6 @@
             </div>
         </div>
     @endforeach
+
+</div>
 @endsection

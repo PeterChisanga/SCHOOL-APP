@@ -17,6 +17,8 @@
   <h1 class="pp-title"><i class="fas fa-graduation-cap"></i>&nbsp; {{ $studentName }}'s fees</h1>
   <p class="pp-sub">{{ $pupil->school->name ?? 'School' }} · Choose how you'd like to pay for each item below.</p>
 
+  @include('partials.parent-portal-nav')
+
   <!-- Who this payment is for -->
   <div class="pp-card">
     <div class="pp-card-body">
@@ -91,6 +93,27 @@
       There are no fee items on record for this pupil yet.
     </div>
   @endforelse
+
+  @if($transactions->isNotEmpty())
+    <h2 class="pp-title" style="font-size: 1rem; margin-top: 8px;">
+      <i class="fas fa-receipt"></i>&nbsp; Payment history
+    </h2>
+    <div class="pp-card">
+      <div class="pp-card-body" style="padding: 6px 0;">
+        @foreach($transactions as $transaction)
+          <div class="pp-detail-row" style="padding: 14px 24px;">
+            <div>
+              <div class="v">K{{ number_format($transaction->amount, 2) }} &middot; {{ $transaction->mode_of_payment }}</div>
+              <div class="k">{{ \Carbon\Carbon::parse($transaction->date)->format('d M Y') }} &middot; {{ $transaction->receipt_number }}</div>
+            </div>
+            <a href="{{ route('parent.receipt.download', $transaction->receipt_number) }}" class="pp-btn pp-btn-secondary" style="width: auto; padding: 8px 14px;">
+              <i class="fas fa-download"></i> Receipt
+            </a>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  @endif
 
 </div>
 

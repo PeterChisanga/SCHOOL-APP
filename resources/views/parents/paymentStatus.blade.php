@@ -73,7 +73,10 @@
       <div class="ps-icon ps-icon-success"><i class="fas fa-check-circle"></i></div>
       <p class="ps-title">Payment Successful!</p>
       <p class="ps-message">Your payment has been confirmed and your balance has been updated.</p>
-      <a href="{{ route('parent.payments', session('otp_pupil_id')) }}" class="ps-btn ps-btn-primary">
+      <a href="{{ route('parent.receipt.download', $reference) }}" class="ps-btn ps-btn-primary">
+        <i class="fas fa-download"></i> Download Receipt
+      </a>
+      <a href="{{ route('parent.payments', session('otp_pupil_id')) }}" class="ps-btn ps-btn-secondary">
         <i class="fas fa-eye"></i> View Payments
       </a>
     </div>
