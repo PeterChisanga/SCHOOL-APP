@@ -11,6 +11,7 @@ use App\Models\PaymentDetail;
 use App\Models\PaymentTransaction;
 use App\Services\LencoService;
 use App\Services\AfricasTalkingService;
+use App\Services\NotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -638,6 +639,19 @@ class ParentPaymentController extends Controller
                 $payment->save();
             }
             $transaction->update(['status' => 'successful']);
+
+            if ($payment) {
+                $pupil  = $payment->pupil;
+                $who    = $pupil ? trim($pupil->first_name . ' ' . $pupil->last_name) : 'pupil #' . $payment->pupil_id;
+                $school = $pupil->school->name ?? 'Unknown school';
+
+                (new NotificationService())->notifyKapiniOfPayment(
+                    $school,
+                    $who,
+                    number_format($transaction->amount, 2),
+                    $transaction->receipt_number
+                );
+            }
         }
     }
 
