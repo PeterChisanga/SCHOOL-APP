@@ -130,6 +130,10 @@
                                     </div>
 
                                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save register</button>
+                                    <a href="{{ route('attendance.pdf', ['date' => $date]) }}" class="btn btn-outline-secondary"
+                                       title="Downloads the saved register for this date">
+                                        <i class="fas fa-print"></i> Print / PDF
+                                    </a>
                                 </form>
                             @endif
                         </div>
