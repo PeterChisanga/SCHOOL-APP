@@ -98,6 +98,17 @@
   }
   .pp-back:hover { color: #0f5132; }
 
+  /* Portal-level nav (Fees & Payments / Results) */
+  .pp-portal-nav { display: flex; gap: 8px; margin-bottom: 22px; background: #e5eae8; padding: 5px; border-radius: 12px; }
+  .pp-portal-link {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 12px; border-radius: 9px;
+    font-size: .85rem; font-weight: 600; color: #4b5563; text-decoration: none;
+    transition: background .2s, color .2s;
+  }
+  .pp-portal-link:hover { color: #0f5132; }
+  .pp-portal-link.active { background: #fff; color: #0f5132; box-shadow: 0 1px 4px rgba(0,0,0,.10); }
+
   /* Tabs (bank / mobile money) */
   .pp-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
   .pp-tab-btn {

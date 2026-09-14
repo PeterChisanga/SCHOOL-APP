@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ExamResult;
 use App\Models\OtpVerification;
 use App\Models\ParentModel;
 use App\Models\Pupil;
@@ -10,6 +11,7 @@ use App\Models\PaymentDetail;
 use App\Models\PaymentTransaction;
 use App\Services\LencoService;
 use App\Services\AfricasTalkingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -172,6 +174,11 @@ class ParentPaymentController extends Controller
     }
 
     public function showResults($pupilId) {
+        if (!session('otp_verified')) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Please verify your phone number first.');
+        }
+
         $pupil = Pupil::findOrFail($pupilId);
         $parent = session('current_parent');
 
@@ -234,7 +241,57 @@ class ParentPaymentController extends Controller
         $payments = Payment::where('pupil_id', $pupilId)->get();
         $parent   = session('current_parent');
 
-        return view('parents.payments', compact('pupil', 'payments', 'parent'));
+        $transactions = PaymentTransaction::whereIn('payment_id', $payments->pluck('id'))
+            ->whereIn('status', self::PAID_STATUSES)
+            ->whereNotNull('receipt_number')
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('parents.payments', compact('pupil', 'payments', 'parent', 'transactions'));
+    }
+
+    // =========================================================================
+    // RECEIPTS
+    // =========================================================================
+
+    /**
+     * Statuses that mean "money actually received" across the different
+     * payment paths (mobile money, the legacy Tumeny webhook, and manual
+     * bank-transfer verification) — see the payment_transactions migration
+     * that introduced 'status' for the canonical list.
+     */
+    private const PAID_STATUSES = ['successful', 'completed', 'verified'];
+
+    public function downloadReceipt($reference)
+    {
+        if (!session('otp_verified')) {
+            return redirect()->route('parent.search.page')
+                ->with('error', 'Please verify your phone number first.');
+        }
+
+        $transaction = PaymentTransaction::with('payment.pupil.school')
+            ->where('receipt_number', $reference)
+            ->firstOrFail();
+
+        $payment = $transaction->payment;
+
+        // Make sure this receipt actually belongs to the pupil the current
+        // session verified against — not just any pupil the parent can guess.
+        if (!$payment || $payment->pupil_id != session('otp_pupil_id')) {
+            abort(403);
+        }
+
+        if (!in_array($transaction->status, self::PAID_STATUSES, true)) {
+            return back()->with('error', 'This receipt is not available yet — the payment has not been confirmed.');
+        }
+
+        $pupil  = $payment->pupil;
+        $school = $pupil->school;
+
+        $pdf = Pdf::loadView('parents.receipt', compact('transaction', 'payment', 'pupil', 'school'));
+
+        return $pdf->download('Receipt-' . $transaction->receipt_number . '.pdf');
     }
 
     // =========================================================================

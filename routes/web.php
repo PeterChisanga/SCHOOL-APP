@@ -87,6 +87,7 @@ Route::get('/parent/results/{pupilId}', [ParentPaymentController::class, 'showRe
 Route::get('/examResults/exportPdf/{pupil}/{term}', [ExamController::class, 'exportPdf'])->name('examResults.exportPdf');
 Route::post('/parent/pay/{paymentId}', [ParentPaymentController::class, 'processPayment'])->name('parent.pay');
 Route::get('/parent/payment/success', [ParentPaymentController::class, 'paymentSuccess'])->name('parent.payment.success');
+Route::get('/parent/receipt/{reference}', [ParentPaymentController::class, 'downloadReceipt'])->name('parent.receipt.download');
 Route::post('/tumeny/webhook', [ParentPaymentController::class, 'tumenyWebhook'])->name('tumeny.webhook');
 
 // Route::get('/parent/payment/payment-status', [ParentPaymentController::class, 'checkPaymentStatus'])->name('parent.payment.status');
