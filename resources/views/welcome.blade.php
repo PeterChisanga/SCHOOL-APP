@@ -27,8 +27,6 @@
           <i class="fa fa-times" onclick="hideMenu()"></i>
           <ul>
            <li><a href="/">HOME</a></li>
-            <li><a href="/about">ABOUT</a></li>
-            <li><a href="/products">PRODUCTS</a></li>
             <!-- <li><a href="blog.html">BLOG</a></li> -->
             <li><a href="/contact">CONTACT</a></li>
           </ul>
@@ -45,92 +43,6 @@
         <a href="/users/create" class="hero-btn">Register Your School</a>
        <a href="/parent/search" class="hero-btn" style="background: #0f5132; color: #fff;">Parent Portal</a>
       </div>
-    </section>
-
-    <section class="intro">
-      <div class="row">
-        <div class="intro-col">
-          <h1>Smart Hub</h1>
-          <p>
-            Smart and profitable school management.
-          </p>
-          <a href="/about" class="hero-btn">Learn more</a>
-        </div>
-        <div class="intro-col">
-          <img src="{{ asset('images/parents.jpeg') }}" alt="" />
-        </div>
-      </div>
-    </section>
-
-    <!-- ------ course ------ -->
-    <section class="course">
-      <h1>Features of our platform</h1>
-
-      <div class="row">
-        <div class="course-col">
-          <i class="fa fa-cogs"></i>
-          <h3>Administration Section</h3>
-          <p>
-            Efficiently track income and expenses, manage records, and monitor
-            school operations with ease.
-          </p>
-        </div>
-        <div class="course-col">
-          <i class="fa fa-graduation-cap"></i>
-          <h3>Student Collaboration</h3>
-          <p>
-            Store and access all student information, including grades, health
-            status, and parent details. Track admission inquiries, customize
-            admission forms, and verify the payment of school fees.
-          </p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="course-col">
-          <i class="fa fa-book"></i>
-          <h3>Teachers Section</h3>
-          <p>
-            E-School enables teachers to effectively monitor student
-            performance, record grades, and track attendance.
-          </p>
-        </div>
-        <div class="course-col">
-          <i class="fa fa-user"></i>
-          <h3>Parents Section</h3>
-          <p>
-            Parents can view and follow the progress of their child and can
-            easily get in touch with teachers. They can also view results of
-            their child.
-          </p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="course-col">
-          <i class="fa fa-calendar"></i>
-          <h3>Timetable & Attendance</h3>
-          <p>
-            Easily mark attendance and create an error-free timetable. Perform
-            classroom and subject allocation for teachers.
-          </p>
-        </div>
-        <div class="course-col">
-          <i class="fa fa-laptop"></i>
-          <h3>Online Classes</h3>
-          <p>
-            E-School now integrates with various video conferencing software
-            such as Google Meet.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="testimonials">
-        <h1>Government Endorsement</h1>
-        <p>We are proud to be officially recognized by the Zambian government for our commitment to enhancing education through technology. This letter signifies the government’s confidence in our mission to revolutionize the learning experience for students and educators alike.</p>
-
-        <div class="row">
-            <img src="{{ asset('images/introductory-letter-e-school.jpg')}}" alt="Government Endorsement Letter" class="responsive-img">
-        </div>
     </section>
 
     <!-- ------------ footer ---------- -->

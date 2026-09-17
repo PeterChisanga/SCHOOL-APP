@@ -20,23 +20,20 @@
   </head>
 
   <body>
-    <section class="sub-header">
+    <header class="simple-header">
       <nav>
         <a href="/"><img src="images/logo_school.png" alt="" /></a>
         <div class="nav-links" id="navLinks">
           <i class="fa fa-times" onclick="hideMenu()"></i>
           <ul>
             <li><a href="/">HOME</a></li>
-            <li><a href="/about">ABOUT</a></li>
-            <li><a href="/products">PRODUCTS</a></li>
             <!-- <li><a href="blog.html">BLOG</a></li> -->
             <li><a href="/contact">CONTACT</a></li>
           </ul>
         </div>
         <i class="fa fa-bars" onclick="showMenu()"></i>
       </nav>
-      <h1>Contact Us</h1>
-    </section>
+    </header>
 
     <!-- ------------ contact us------------ -->
     <section class="contact-us" aria-labelledby="contact-heading">

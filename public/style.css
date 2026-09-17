@@ -781,6 +781,11 @@ h3 {
     margin-top: 100px;
 }
 
+/* Contact page: plain nav bar (no banner photo / heading) */
+.simple-header {
+    background-color: #04091e;
+}
+
 .about-us {
     width: 80%;
     margin: auto;
