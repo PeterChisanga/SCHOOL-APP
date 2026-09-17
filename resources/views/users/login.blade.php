@@ -46,8 +46,6 @@
                 <i class="fa fa-times" onclick="hideMenu()"></i>
                 <ul>
                     <li><a href="/">HOME</a></li>
-                    <li><a href="/about">ABOUT</a></li>
-                    <li><a href="/products">PRODUCTS</a></li>
                     <!-- <li><a href="blog.html">BLOG</a></li> -->
                     <li><a href="/contact">CONTACT</a></li>
                 </ul>
