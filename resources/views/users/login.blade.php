@@ -39,7 +39,7 @@
 
     </head>
     <body>
-        <section class="sub-header">
+        <header class="simple-header">
             <nav>
                 <a href="/"><img src="images/logo_school.png" alt="" /></a>
                 <div class="nav-links" id="navLinks">
@@ -52,8 +52,7 @@
                 </div>
                 <i class="fa fa-bars" onclick="showMenu()"></i>
             </nav>
-            <h1>Login</h1>
-        </section>
+        </header>
         <div class="container mt-5">
             <div class="row justify-content-center">
                 <div class="col-md-6">

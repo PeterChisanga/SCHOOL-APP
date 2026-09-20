@@ -35,10 +35,6 @@
       </nav>
       <div class="text-box">
         <h1>Building a better school together.</h1>
-        <p>
-          E-school is a platform interested in enhancing parent and teacher
-          co-operation in Africa.
-        </p>
         <a href="/login" class="hero-btn">Login</a>
         <a href="/users/create" class="hero-btn">Register Your School</a>
        <a href="/parent/search" class="hero-btn" style="background: #0f5132; color: #fff;">Parent Portal</a>
