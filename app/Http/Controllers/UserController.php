@@ -9,6 +9,7 @@ use App\Models\Teacher;
 use App\Models\Secretary;
 use App\Models\Subject;
 use App\Models\ParentModel;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -137,9 +138,23 @@ class UserController extends Controller
                 return $class->pupils()->count();
             });
 
+            // Class teacher attendance info for the dashboard card
+            $teacher = Teacher::where('user_id', Auth::id())->first();
+            $attClass = ($teacher && $teacher->class_id) ? $teacher->class : null;
+            $attTakenToday = false;
+            $attPresentToday = 0;
+            if ($attClass) {
+                $todayRows = Attendance::where('class_id', $attClass->id)
+                    ->where('date', now()->toDateString())
+                    ->get();
+                $attTakenToday = $todayRows->isNotEmpty();
+                $attPresentToday = $todayRows->where('status', 'present')->count();
+            }
+
             return view('dashboard.teacher', compact(
                 'studentsCount', 'teachersCount', 'parentsCount',
-                'classesCount', 'subjectsCount', 'classNames', 'studentsPerClass'
+                'classesCount', 'subjectsCount', 'classNames', 'studentsPerClass',
+                'attClass', 'attTakenToday', 'attPresentToday'
             ));
         } catch (Exception $e) {
             \Log::error('Error loading teacher dashboard: ' . $e->getMessage());

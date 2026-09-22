@@ -44,4 +44,22 @@ class NotificationService
             Log::error("Failed to send Kapini school-registration alert: " . $e->getMessage());
         }
     }
+
+    /**
+     * Alert Kapini Technologies when a parent's mobile money payment succeeds, for reconciliation.
+     */
+    public function notifyKapiniOfPayment($schoolName, $pupilName, $amount, $reference)
+    {
+        try {
+            Mail::raw(
+                "Payment received: K{$amount} from {$pupilName} ({$schoolName}). Ref: {$reference}.",
+                function ($message) use ($schoolName) {
+                    $message->to(config('services.eschool.email_address'))
+                            ->subject("Payment Received - {$schoolName}");
+                }
+            );
+        } catch (\Exception $e) {
+            Log::error("Failed to send Kapini payment-received alert: " . $e->getMessage());
+        }
+    }
 }

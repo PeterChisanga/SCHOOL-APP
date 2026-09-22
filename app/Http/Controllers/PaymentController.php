@@ -83,12 +83,16 @@ class PaymentController extends Controller {
             'deposit_slip_id' => 'nullable|string|max:255',
         ]);
 
+        // Generate receipt number: YEAR + TIME + SCHOOL ID (zero-padded)
+        $receiptNumber = date('YHis') . str_pad(auth()->user()->school_id, 2, '0', STR_PAD_LEFT);
+
         PaymentTransaction::create([
             'payment_id' => $payment->id,
             'amount' => $request->amount_paid,
             'mode_of_payment' => $request->mode_of_payment,
             'date' => $request->date,
             'deposit_slip_id' => $request->deposit_slip_id ?? null,
+            'receipt_number' => $receiptNumber,
         ]);
 
         $payment->amount_paid += $request->amount_paid;

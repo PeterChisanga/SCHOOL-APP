@@ -59,6 +59,7 @@ class TeacherController extends Controller {
                 'date_of_birth' => 'required|date',
                 'class_ids' => 'required|array',
                 'class_ids.*' => 'exists:classes,id',
+                'class_id' => 'nullable|exists:classes,id',
             ]);
 
             $userData = [
@@ -90,9 +91,10 @@ class TeacherController extends Controller {
                 'salary' => $request->salary ?? null,
                 'school_id' => $schoolId,
                 'user_id' => $user->id,
+                'class_id' => $request->class_id ?? null,
             ]);
 
-            // Attach selected classes
+            // Attach the classes the teacher teaches
             $teacher->classes()->sync($request->class_ids);
 
             return redirect('/teachers')->with('success', 'Teacher registered successfully.');
@@ -127,6 +129,7 @@ class TeacherController extends Controller {
                 'password' => 'nullable|string|confirmed|min:8',
                 'class_ids' => 'required|array',
                 'class_ids.*' => 'exists:classes,id',
+                'class_id' => 'nullable|exists:classes,id',
             ]);
 
             $teacher->update([
@@ -142,6 +145,7 @@ class TeacherController extends Controller {
                 'admission_date' => $request->admission_date,
                 'qualification' => $request->qualification,
                 'salary' => $request->salary,
+                'class_id' => $request->class_id ?? null,
             ]);
 
             $userData = [
@@ -157,7 +161,7 @@ class TeacherController extends Controller {
 
             $teacher->user->update($userData);
 
-            // Update teacher's classes
+            // Update the classes the teacher teaches
             $teacher->classes()->sync($request->class_ids);
 
             return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
