@@ -1,14 +1,16 @@
-# .github/workflows/deploy-staging.yml
-name: Deploy Laravel to Hostinger (Staging)
+# .github/workflows/deploy.yml
+name: Deploy Laravel to Hostinger
 
 on:
   push:
     branches:
       - staging
+      - main
 
 jobs:
-  deploy:
-    name: Deploy Application
+  deploy-staging:
+    name: Deploy to Staging
+    if: github.ref_name == 'staging'
     runs-on: ubuntu-latest
 
     steps:
@@ -28,6 +30,47 @@ jobs:
             # Fetch latest changes from staging
             git fetch origin staging
             git reset --hard origin/staging
+            
+            # Install PHP dependencies
+            composer install --no-dev --optimize-autoloader --no-interaction
+            
+            # Run database migrations
+            php artisan migrate --force
+            
+            # Clear and rebuild caches
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            
+            # Ensure storage link exists
+            php artisan storage:link || true
+            
+            # Bring app back online
+            php artisan up
+
+  deploy-production:
+    name: Deploy to Production
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Remote SSH Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_SSH_HOST }}
+          username: ${{ secrets.HOSTINGER_SSH_USER }}
+          password: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          script: |
+            cd ${{ secrets.HOSTINGER_PROD_PATH }}
+            
+            # Put app into maintenance mode
+            php artisan down || true
+            
+            # Fetch latest changes from main
+            git fetch origin main
+            git pull
             
             # Install PHP dependencies
             composer install --no-dev --optimize-autoloader --no-interaction
