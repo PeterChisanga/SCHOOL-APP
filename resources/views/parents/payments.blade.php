@@ -3,6 +3,13 @@
 @section('content')
 @include('partials.payment-theme')
 
+<style>
+  .pp-charge-box { background:#f0faf4; border:1px solid #a8e0bc; border-radius:10px; padding:12px 14px; margin:-6px 0 18px; }
+  .pp-charge-row { display:flex; align-items:center; justify-content:space-between; font-size:.82rem; color:#374151; padding:3px 0; }
+  .pp-charge-row.pp-charge-total { border-top:1px dashed #a8e0bc; margin-top:6px; padding-top:8px; font-weight:700; color:#0f5132; font-size:.9rem; }
+  .pp-charge-note { font-size:.72rem; color:#6b7280; margin:6px 0 0; }
+</style>
+
 <div class="pp-wrap">
 
   @php
@@ -128,7 +135,22 @@
       @csrf
       <div class="pp-field">
         <label class="pp-label" for="amount_to_pay">Amount (ZMW)</label>
-        <input type="number" id="amount_to_pay" name="amount_to_pay" class="pp-input" step="0.01" min="0.01" placeholder="0.00" required>
+        <input type="number" id="amount_to_pay" name="amount_to_pay" class="pp-input" step="0.01" min="0.01" placeholder="0.00" required oninput="updateChargeBreakdown()">
+      </div>
+      <div class="pp-charge-box">
+        <div class="pp-charge-row">
+          <span>Amount</span>
+          <span id="pp_amount_echo">K0.00</span>
+        </div>
+        <div class="pp-charge-row">
+          <span>Service charge (4%)</span>
+          <span id="pp_charge_echo">K0.00</span>
+        </div>
+        <div class="pp-charge-row pp-charge-total">
+          <span>Total to pay</span>
+          <span id="pp_total_echo">K0.00</span>
+        </div>
+        <p class="pp-charge-note">A 4% service charge is added to the amount you enter.</p>
       </div>
       <div class="pp-field">
         <label class="pp-label" for="payment_phone">Mobile money number</label>
@@ -145,7 +167,7 @@
       </div>
       <div class="pp-modal-actions">
         <button type="button" class="pp-btn pp-btn-ghost" style="width:auto;" onclick="closeMomo()">Cancel</button>
-        <button type="submit" class="pp-btn pp-btn-primary" style="width:auto;">Send payment prompt</button>
+        <button type="submit" id="pp_submit_btn" class="pp-btn pp-btn-primary" style="width:auto;">Send payment prompt</button>
       </div>
     </form>
   </div>
@@ -156,10 +178,21 @@ function openMomo(paymentId, balance){
   const template = "{{ route('parent.pay', ['paymentId' => '__ID__']) }}";
   document.getElementById('momoForm').action = template.replace('__ID__', paymentId);
   document.getElementById('amount_to_pay').value = balance;
+  updateChargeBreakdown();
   document.getElementById('momoOverlay').classList.add('open');
 }
 function closeMomo(){
   document.getElementById('momoOverlay').classList.remove('open');
+}
+const SERVICE_CHARGE_RATE = 0.04;
+function updateChargeBreakdown(){
+  const amount = parseFloat(document.getElementById('amount_to_pay').value) || 0;
+  const charge = Math.round(amount * SERVICE_CHARGE_RATE * 100) / 100;
+  const total  = Math.round((amount + charge) * 100) / 100;
+  document.getElementById('pp_amount_echo').textContent = 'K' + amount.toFixed(2);
+  document.getElementById('pp_charge_echo').textContent = 'K' + charge.toFixed(2);
+  document.getElementById('pp_total_echo').textContent  = 'K' + total.toFixed(2);
+  document.getElementById('pp_submit_btn').textContent  = 'Send payment prompt \u2014 K' + total.toFixed(2);
 }
 </script>
 @endsection

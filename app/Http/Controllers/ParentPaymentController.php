@@ -318,10 +318,16 @@ class ParentPaymentController extends Controller
             $parent    = session('current_parent');
             $reference = 'PAY-' . strtoupper(Str::random(12));
 
+            // What the parent entered reduces the balance. Lenco is charged the
+            // entered amount plus a 4% service charge.
+            $amountEntered = floatval($validated['amount_to_pay']);
+            $serviceCharge = round($amountEntered * 0.04, 2);
+            $totalToCharge = round($amountEntered + $serviceCharge, 2);
+
             // Create pending transaction
             $transaction = PaymentTransaction::create([
                 'payment_id'      => $payment->id,
-                'amount'          => floatval($validated['amount_to_pay']),
+                'amount'          => $amountEntered,
                 'mode_of_payment' => 'Mobile Money',
                 'payment_method'  => 'mobile_money',
                 'status'          => 'pending',
@@ -332,7 +338,7 @@ class ParentPaymentController extends Controller
             // Call Lenco
             $gateway = new LencoService();
             $result  = $gateway->collectMobileMoney([
-                'amount'    => floatval($validated['amount_to_pay']),
+                'amount'    => $totalToCharge,
                 'phone'     => $this->formatPhoneNumber($validated['payment_phone']),
                 'operator'  => $validated['operator'],
                 'reference' => $reference,
@@ -651,6 +657,17 @@ class ParentPaymentController extends Controller
                     number_format($transaction->amount, 2),
                     $transaction->receipt_number
                 );
+
+                $schoolEmail = $pupil?->school?->email;
+                if ($schoolEmail) {
+                    (new NotificationService())->notifySchoolOfPayment(
+                        $schoolEmail,
+                        $school,
+                        $who,
+                        number_format($transaction->amount, 2),
+                        $transaction->receipt_number
+                    );
+                }
             }
         }
     }
