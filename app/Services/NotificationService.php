@@ -34,7 +34,7 @@ class NotificationService
     {
         try {
             // >>> replace with the Kapini Technologies email once confirmed <<<
-            Mail::to(config('services.eschool.email_address'))->send(new SchoolRegistered(
+            Mail::to('eschool240@gmail.com')->send(new SchoolRegistered(
                 $schoolName,
                 $adminName,
                 $adminEmail,
@@ -42,6 +42,24 @@ class NotificationService
             ));
         } catch (\Exception $e) {
             Log::error("Failed to send Kapini school-registration alert: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify a school that a parent's mobile money payment succeeded.
+     */
+    public function notifySchoolOfPayment($schoolEmail, $schoolName, $pupilName, $amount, $reference)
+    {
+        try {
+            Mail::raw(
+                "Payment received: K{$amount} from {$pupilName} for {$schoolName}. Ref: {$reference}.",
+                function ($message) use ($schoolEmail, $schoolName) {
+                    $message->to($schoolEmail)
+                            ->subject("Payment Received - {$schoolName}");
+                }
+            );
+        } catch (\Exception $e) {
+            Log::error("Failed to send school payment-received alert: " . $e->getMessage());
         }
     }
 
@@ -54,7 +72,7 @@ class NotificationService
             Mail::raw(
                 "Payment received: K{$amount} from {$pupilName} ({$schoolName}). Ref: {$reference}.",
                 function ($message) use ($schoolName) {
-                    $message->to(config('services.eschool.email_address'))
+                    $message->to('eschool240@gmail.com')
                             ->subject("Payment Received - {$schoolName}");
                 }
             );
