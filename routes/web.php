@@ -183,6 +183,7 @@ Route::group(['middleware' => 'admin'], function() {
         Route::get('/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('create-pay-balance');
         Route::post('/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('pay-balance');
         Route::get('/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('export-pdf');
+        Route::post('/send-balance-sms', [PaymentController::class, 'sendBalanceSms'])->name('send-balance-sms');
     });
 
     Route::prefix('incomes')->name('incomes.')->group(function() {
@@ -217,6 +218,7 @@ Route::group(['middleware' => 'secretary'], function() {
         Route::get('/pay-balance/{payment}', [PaymentController::class, 'createPayBalance'])->name('create-pay-balance');
         Route::post('/pay-balance/{payment}', [PaymentController::class, 'payBalance'])->name('pay-balance');
         Route::get('/export-pdf/{payment}', [PaymentController::class, 'exportPdf'])->name('export-pdf');
+        Route::post('/send-balance-sms', [PaymentController::class, 'sendBalanceSms'])->name('send-balance-sms');
     });
 
     Route::resource('expenses', ExpenseController::class);

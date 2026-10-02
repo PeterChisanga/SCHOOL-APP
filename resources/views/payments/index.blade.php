@@ -12,7 +12,12 @@
 
     <form action="{{ route('payments.index') }}" method="GET" class="mb-3">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <label for="search">Search Pupil</label>
+                <input type="text" name="search" id="search" class="form-control"
+                       value="{{ request('search') }}" placeholder="Name...">
+            </div>
+            <div class="col-md-3">
                 <label for="term">Term</label>
                 <select name="term" id="term" class="form-control" onchange="this.form.submit()">
                     <option value="">All</option>
@@ -21,7 +26,7 @@
                     <option value="Term 3" {{ request('term') == 'Term 3' ? 'selected' : '' }}>Term 3</option>
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="year">Year</label>
                 <select name="year" id="year" class="form-control" onchange="this.form.submit()">
                     <option value="">All</option>
@@ -30,13 +35,26 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">Filter</button>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
             </div>
         </div>
     </form>
 
-    <a href="{{ route('payments.select-pupil') }}" class="btn btn-primary mb-3">Add New Payment</a>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <a href="{{ route('payments.select-pupil') }}" class="btn btn-primary">Add New Payment</a>
+
+        <form action="{{ route('payments.send-balance-sms') }}" method="POST"
+              onsubmit="return confirm('Send a fee balance SMS to the parent of each pupil listed?');">
+            @csrf
+            <input type="hidden" name="term" value="{{ request('term') }}">
+            <input type="hidden" name="year" value="{{ request('year') }}">
+            <input type="hidden" name="search" value="{{ request('search') }}">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-sms"></i> Send Balance SMS
+            </button>
+        </form>
+    </div>
 
     <div class="table-responsive">
         <table class="table table-bordered">

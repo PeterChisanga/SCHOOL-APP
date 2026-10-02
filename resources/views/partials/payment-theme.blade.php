@@ -109,6 +109,16 @@
   .pp-portal-link:hover { color: #0f5132; }
   .pp-portal-link.active { background: #fff; color: #0f5132; box-shadow: 0 1px 4px rgba(0,0,0,.10); }
 
+  /* Children switcher */
+  .pp-children { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .pp-children-label { font-size: .78rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+  .pp-child-chip {
+    padding: 5px 12px; border-radius: 999px; background: #fff; border: 1px solid #d1d5db;
+    color: #374151; font-size: .82rem; font-weight: 600; text-decoration: none; transition: all .2s;
+  }
+  .pp-child-chip:hover { border-color: #0f5132; color: #0f5132; }
+  .pp-child-chip.active { background: #0f5132; border-color: #0f5132; color: #fff; }
+
   /* Tabs (bank / mobile money) */
   .pp-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
   .pp-tab-btn {

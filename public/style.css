@@ -654,73 +654,13 @@ h3 {
 /* Footer Styling */
 .footer {
     background: linear-gradient(135deg, #151515 0%, #252525 100%);
-    padding: 60px 0 20px;
+    padding: 30px 0 20px;
     border-top: 1px solid #3a3a3a;
-}
-
-.footer-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
-    margin-bottom: 40px;
-}
-
-.footer-item h4 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.footer-item p {
-    font-size: 1rem;
-    color: #a0aec0;
-    margin-bottom: 8px;
-}
-
-.footer-item a {
-    color: #ff6b6b;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.footer-item a:hover {
-    color: #ff8787;
-    text-decoration: underline;
-}
-
-.footer-item i {
-    color: #ff6b6b;
-    margin-right: 10px;
-    font-size: 1.2rem;
-}
-
-/* Social Icons */
-.social-icons {
-    display: flex;
-    gap: 15px;
-}
-
-.social-icons a {
-    font-size: 1.5rem;
-    color: #ff6b6b;
-    transition:
-        color 0.3s ease,
-        transform 0.3s ease;
-}
-
-.social-icons a:hover {
-    color: #ff8787;
-    transform: scale(1.1);
 }
 
 /* Footer Bottom */
 .footer-bottom {
     text-align: center;
-    padding-top: 20px;
-    border-top: 1px solid #3a3a3a;
 }
 
 .footer-bottom p {
@@ -746,23 +686,6 @@ h3 {
         padding: 40px 0 15px;
     }
 
-    .footer-item h4 {
-        font-size: 1.2rem;
-    }
-
-    .footer-item p {
-        font-size: 0.9rem;
-    }
-
-    .social-icons a {
-        font-size: 1.3rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .footer-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* --------------- about us page -------------------- */

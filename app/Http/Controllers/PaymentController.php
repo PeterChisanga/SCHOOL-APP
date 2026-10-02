@@ -9,6 +9,7 @@ use App\Models\ClassModel;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\SendResultsSmsJob;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PaymentController extends Controller {
@@ -21,7 +22,22 @@ class PaymentController extends Controller {
                     ->orderBy('year', 'desc')
                     ->pluck('year');
 
-        $query = Payment::with('pupil')->where('school_id', $schoolId);
+        $payments = $this->filteredPayments($request)
+                      ->orderBy('updated_at', 'desc')
+                      ->orderBy('created_at', 'desc')
+                      ->get();
+
+        return view('payments.index', compact('payments', 'years'));
+    }
+
+    /**
+     * Base query for the fee collection list, honouring the term/year/search
+     * filters. Shared by the list view and the balance-SMS action so both act
+     * on exactly the same set of records.
+     */
+    private function filteredPayments(Request $request)
+    {
+        $query = Payment::with('pupil')->where('school_id', auth()->user()->school_id);
 
         if ($request->term) {
             $query->where('term', $request->term);
@@ -31,11 +47,48 @@ class PaymentController extends Controller {
             $query->whereYear('created_at', $request->year);
         }
 
-        $payments = $query->orderBy('updated_at', 'desc')
-                      ->orderBy('created_at', 'desc')
-                      ->get();
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('pupil', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%");
+            });
+        }
 
-        return view('payments.index', compact('payments', 'years'));
+        return $query;
+    }
+
+    /**
+     * Send each parent a single SMS for their child's total outstanding
+     * balance across the currently filtered fee records (one SMS per pupil).
+     */
+    public function sendBalanceSms(Request $request)
+    {
+        $sent = 0;
+
+        $this->filteredPayments($request)
+            ->where('balance', '>', 0)
+            ->with('pupil.parent', 'pupil.school')
+            ->get()
+            ->groupBy('pupil_id')
+            ->each(function ($payments) use (&$sent) {
+                $pupil = $payments->first()->pupil;
+
+                if (!$pupil || !$pupil->parent || empty($pupil->parent->phone)) {
+                    return;
+                }
+
+                $name    = trim($pupil->first_name . ' ' . $pupil->last_name);
+                $balance = number_format($payments->sum('balance'), 2);
+                $school  = $pupil->school->name ?? 'School';
+
+                $message = "Dear parent, {$name} has an outstanding fee balance of K{$balance}. Kindly settle the balance. - {$school}";
+
+                SendResultsSmsJob::dispatch($pupil->parent->phone, $message);
+                $sent++;
+            });
+
+        return redirect()->back()->with('success', "{$sent} balance alert(s) queued for SMS delivery.");
     }
 
     public function create(Pupil $pupil)

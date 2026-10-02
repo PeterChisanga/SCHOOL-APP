@@ -18,11 +18,19 @@ class PupilController extends Controller {
             $classes = ClassModel::where('school_id', $schoolId)->get();
 
             $classId = $request->input('class_id');
+            $search  = $request->input('search');
 
             $pupils = Pupil::with(['school', 'class'])
                         ->where('school_id', $schoolId)
                         ->when($classId, function ($query, $classId) {
                             return $query->where('class_id', $classId);
+                        })
+                        ->when($search, function ($query, $search) {
+                            return $query->where(function ($q) use ($search) {
+                                $q->where('first_name', 'like', "%{$search}%")
+                                  ->orWhere('middle_name', 'like', "%{$search}%")
+                                  ->orWhere('last_name', 'like', "%{$search}%");
+                            });
                         })
                         ->orderBy('first_name')
                         ->get();

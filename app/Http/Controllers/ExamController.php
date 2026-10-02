@@ -65,6 +65,14 @@ class ExamController extends Controller {
             $query->where('term', $request->term);
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('pupil', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%");
+            });
+        }
+
         $examResults = $query
             ->orderBy('updated_at', 'desc')
             ->orderBy('created_at', 'desc')
