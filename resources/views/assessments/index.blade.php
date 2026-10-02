@@ -14,7 +14,11 @@
     {{-- Filters --}}
     <form method="GET" action="{{ route('assessments.index') }}" class="mb-4">
         <div class="row g-2">
-            <div class="col-md-3">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control"
+                       value="{{ request('search') }}" placeholder="Search pupil name...">
+            </div>
+            <div class="col-md-2">
                 <select name="class_id" class="form-control" onchange="this.form.submit()">
                     <option value="">All Classes</option>
                     @foreach($classes as $class)
@@ -24,7 +28,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select name="subject_id" class="form-control" onchange="this.form.submit()">
                     <option value="">All Subjects</option>
                     @foreach($subjects as $subject)
@@ -34,7 +38,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select name="term" class="form-control" onchange="this.form.submit()">
                     <option value="">All Terms</option>
                     <option value="term 1" {{ request('term') == 'term 1' ? 'selected' : '' }}>Term 1</option>
@@ -42,8 +46,9 @@
                     <option value="term 3" {{ request('term') == 'term 3' ? 'selected' : '' }}>Term 3</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <a href="{{ route('assessments.index') }}" class="btn btn-secondary w-100">Clear Filters</a>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                <a href="{{ route('assessments.index') }}" class="btn btn-secondary w-100">Clear</a>
             </div>
         </div>
     </form>

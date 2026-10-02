@@ -34,6 +34,6 @@ class SendResultsSmsJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error("Failed to send results SMS to {$this->phone}: " . $exception->getMessage());
+        Log::error("Failed to send SMS to {$this->phone}: " . $exception->getMessage());
     }
 }

@@ -39,6 +39,14 @@ class AssessmentController extends Controller {
                 $query->where('term', $request->term);
             }
 
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->whereHas('pupil', function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%");
+                });
+            }
+
             $assessments = $query->orderBy('assessment_date', 'desc')->get();
 
             return view('assessments.index', compact('assessments', 'classes', 'subjects'));

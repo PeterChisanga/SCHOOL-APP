@@ -36,18 +36,14 @@ class ParentPaymentController extends Controller
         $phone     = $request->phone;
         $formatted = $this->formatPhoneNumber($phone);
 
-        $parent = ParentModel::where('phone', $phone)
+        $parents = ParentModel::where('phone', $phone)
                     ->orWhere('phone', $formatted)
-                    ->first();
+                    ->get();
 
-        if (!$parent) {
+        $pupilIds = $parents->pluck('pupil_id')->filter()->unique()->values();
+
+        if ($parents->isEmpty() || $pupilIds->isEmpty()) {
             return back()->with('error', 'No account found for that phone number. Please check and try again.');
-        }
-
-        $pupil = Pupil::find($parent->pupil_id);
-
-        if (!$pupil) {
-            return back()->with('error', 'No pupil linked to this account.');
         }
 
         // Invalidate any previous unused OTPs for this number
@@ -76,9 +72,10 @@ class ParentPaymentController extends Controller
         }
 
         session([
-            'otp_phone'    => $formatted,
-            'otp_pupil_id' => $pupil->id,
-            'otp_verified' => false,
+            'otp_phone'     => $formatted,
+            'otp_pupil_id'  => $pupilIds->first(),
+            'otp_pupil_ids' => $pupilIds->all(),
+            'otp_verified'  => false,
         ]);
 
         return redirect()->route('parent.otp.page');
@@ -120,15 +117,18 @@ class ParentPaymentController extends Controller
 
         $record->update(['used' => true]);
 
-        $parent = ParentModel::where('phone', $phone)->first();
+        $parents  = ParentModel::where('phone', $phone)->get();
+        $pupilIds = $parents->pluck('pupil_id')->filter()->unique()->values();
 
         session([
-            'current_parent'     => $parent,
+            'current_parent'     => $parents->first(),
             'otp_verified'       => true,
             'otp_verified_phone' => $phone,
+            'otp_pupil_ids'      => $pupilIds->all(),
+            'otp_pupil_id'       => $pupilIds->first(),
         ]);
 
-        return redirect()->route('parent.payments', ['pupilId' => session('otp_pupil_id')]);
+        return redirect()->route('parent.payments', ['pupilId' => $pupilIds->first()]);
     }
 
     public function resendOtp()
@@ -180,8 +180,14 @@ class ParentPaymentController extends Controller
                 ->with('error', 'Please verify your phone number first.');
         }
 
-        $pupil = Pupil::findOrFail($pupilId);
-        $parent = session('current_parent');
+        $pupilIds = session('otp_pupil_ids', [$pupilId]);
+        if (!in_array((int) $pupilId, array_map('intval', $pupilIds), true)) {
+            abort(403);
+        }
+
+        $pupil    = Pupil::findOrFail($pupilId);
+        $parent   = session('current_parent');
+        $children = Pupil::whereIn('id', $pupilIds)->orderBy('first_name')->get();
 
         $terms = $pupil->examResults->pluck('term')->unique();
 
@@ -224,7 +230,7 @@ class ParentPaymentController extends Controller
             }
         }
 
-        return view('parents.results', compact('pupil', 'terms', 'positions'));
+        return view('parents.results', compact('pupil', 'terms', 'positions', 'children'));
     }
 
     // =========================================================================
@@ -238,9 +244,15 @@ class ParentPaymentController extends Controller
                 ->with('error', 'Please verify your phone number first.');
         }
 
+        $pupilIds = session('otp_pupil_ids', [$pupilId]);
+        if (!in_array((int) $pupilId, array_map('intval', $pupilIds), true)) {
+            abort(403);
+        }
+
         $pupil    = Pupil::findOrFail($pupilId);
         $payments = Payment::where('pupil_id', $pupilId)->get();
         $parent   = session('current_parent');
+        $children = Pupil::whereIn('id', $pupilIds)->orderBy('first_name')->get();
 
         $transactions = PaymentTransaction::whereIn('payment_id', $payments->pluck('id'))
             ->whereIn('status', self::PAID_STATUSES)
@@ -249,7 +261,7 @@ class ParentPaymentController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        return view('parents.payments', compact('pupil', 'payments', 'parent', 'transactions'));
+        return view('parents.payments', compact('pupil', 'payments', 'parent', 'transactions', 'children'));
     }
 
     // =========================================================================
@@ -279,7 +291,8 @@ class ParentPaymentController extends Controller
 
         // Make sure this receipt actually belongs to the pupil the current
         // session verified against — not just any pupil the parent can guess.
-        if (!$payment || $payment->pupil_id != session('otp_pupil_id')) {
+        $childIds = session('otp_pupil_ids', [session('otp_pupil_id')]);
+        if (!$payment || !in_array((int) $payment->pupil_id, array_map('intval', $childIds), true)) {
             abort(403);
         }
 

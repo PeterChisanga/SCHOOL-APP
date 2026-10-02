@@ -69,8 +69,13 @@
 
 <!-- Filter Form -->
 <form method="GET" action="{{ route('examResults.index') }}" class="mb-4">
-    <div class="row">
-        <div class="col-md-4">
+    <div class="row g-2">
+        <div class="col-md-3">
+            <label for="search" class="form-label">Search Pupil</label>
+            <input type="text" name="search" id="search" class="form-control"
+                   value="{{ request('search') }}" placeholder="Name...">
+        </div>
+        <div class="col-md-3">
             <label for="class_id" class="form-label">Filter by Class</label>
             <select name="class_id" id="class_id" class="form-control" onchange="this.form.submit()">
                 <option value="">All Classes</option>
@@ -81,7 +86,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="subject_id" class="form-label">Filter by Subject</label>
             <select name="subject_id" id="subject_id" class="form-control" onchange="this.form.submit()">
                 <option value="">All Subjects</option>
@@ -92,7 +97,16 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-4 d-flex align-items-end">
+        <div class="col-md-3">
+            <label for="term" class="form-label">Filter by Term</label>
+            <select name="term" id="term" class="form-control" onchange="this.form.submit()">
+                <option value="">All Terms</option>
+                <option value="term 1" {{ request('term') == 'term 1' ? 'selected' : '' }}>Term 1</option>
+                <option value="term 2" {{ request('term') == 'term 2' ? 'selected' : '' }}>Term 2</option>
+                <option value="term 3" {{ request('term') == 'term 3' ? 'selected' : '' }}>Term 3</option>
+            </select>
+        </div>
+        <div class="col-12">
             <button type="submit" class="btn btn-primary">Apply Filters</button>
         </div>
     </div>

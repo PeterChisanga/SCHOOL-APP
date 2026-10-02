@@ -11,7 +11,12 @@
 
     <form method="GET" action="{{ route('pupils.index') }}" class="mb-4">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-5">
+                <label for="search" class="form-label">Search Pupil</label>
+                <input type="text" name="search" id="search" class="form-control"
+                       value="{{ request('search') }}" placeholder="Name...">
+            </div>
+            <div class="col-md-4">
                 <label for="class_id" class="form-label">Filter by Class</label>
                 <select name="class_id" id="class_id" class="form-control" onchange="this.form.submit()">
                     <option value="">All Classes</option>
@@ -22,8 +27,8 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-6 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">Filter</button>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
             </div>
         </div>
     </form>
