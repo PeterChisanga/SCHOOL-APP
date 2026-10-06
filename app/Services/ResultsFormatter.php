@@ -26,7 +26,7 @@ class ResultsFormatter
         foreach ($results as $result) {
             $subject = $result->subject?->name ?? "Subject";
             $mid     = round($result->mid_term_mark) ?? '—';
-            $end     = round($result->mid_term_mark) ?? '—';
+            $end     = round($result->end_of_term_mark) ?? '—';
 
             $message .= "{$subject}: Mid {$mid}%, End {$end}%\n";
         }
@@ -54,7 +54,7 @@ class ResultsFormatter
             ->groupBy('pupil_id')
             ->map(function ($results) {
                 $ends = $results->pluck('end_of_term_mark')->filter(fn($v) => $v !== null);
-                return $ends->isNotEmpty() ? (int) round($ends-avg()) : null;
+                return $ends->isNotEmpty() ? (int) round($ends->avg()) : null;
             })
             ->filter(fn($v) => $v !== null)
             ->sortDesc();
