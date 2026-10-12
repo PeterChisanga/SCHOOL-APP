@@ -201,7 +201,11 @@ class ParentPaymentController extends Controller
 
             $pupilTotals = $classResults->groupBy('pupil_id')->map(function ($pupilResults) {
                 $total = $pupilResults->sum(function ($result) {
-                    return ($result->mid_term_mark + $result->end_of_term_mark) / 2;
+                    $marks = array_filter(
+                        [$result->mid_term_mark, $result->end_of_term_mark],
+                        fn ($m) => $m !== null
+                    );
+                    return $marks ? array_sum($marks) / count($marks) : 0;
                 });
                 return [
                     'pupil_id' => $pupilResults->first()->pupil_id,

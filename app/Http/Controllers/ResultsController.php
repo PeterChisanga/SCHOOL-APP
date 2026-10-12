@@ -27,6 +27,7 @@ class ResultsController extends Controller
             })
             ->with([
                 'parent',
+                'school',
                 'examResults' => function ($query) use ($term) {
                     $query->where('term', $term)->with('subject');
                 }

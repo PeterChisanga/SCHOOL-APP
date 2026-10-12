@@ -25,8 +25,8 @@ class ResultsFormatter
 
         foreach ($results as $result) {
             $subject = $result->subject?->name ?? "Subject";
-            $mid     = round($result->mid_term_mark) ?? '—';
-            $end     = round($result->end_of_term_mark) ?? '—';
+            $mid     = $result->mid_term_mark !== null ? round($result->mid_term_mark) : '—';
+            $end     = $result->end_of_term_mark !== null ? round($result->end_of_term_mark) : '—';
 
             $message .= "{$subject}: Mid {$mid}%, End {$end}%\n";
         }
@@ -36,6 +36,11 @@ class ResultsFormatter
         $position = $this->classPosition($pupil, $activeTerm);
         if ($position !== null) {
             $message .= "\nPosition in class: {$position}";
+        }
+
+        // School name as the last line of the message
+        if ($schoolName = $pupil->school->name ?? null) {
+            $message .= "\n{$schoolName}";
         }
 
         return trim($message);
