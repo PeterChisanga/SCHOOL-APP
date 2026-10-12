@@ -33,6 +33,11 @@ class ResultsFormatter
 
         //$message .= "\nTranscript: https://e-schoolzambia.site/results/{$pupil->id}/{$activeTerm}";
 
+        // School name as the last line of the message
+        if ($schoolName = $pupil->school->name ?? null) {
+            $message .= "\n{$schoolName}";
+        }
+
         return trim($message);
     }
 }

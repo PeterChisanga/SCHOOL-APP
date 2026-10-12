@@ -69,27 +69,27 @@
                 <tr>
                     @if(Auth::user()->isPremium())
                         <td>
-                            <input type="number" name="mid_term_raw" id="mid_term_raw" class="form-control raw-mark" min="0" step="0.01" value="{{ $examResult->mid_term_raw ?? $examResult->mid_term_mark }}" required data-type="mid_term">
+                            <input type="number" name="mid_term_raw" id="mid_term_raw" class="form-control raw-mark" min="0" step="0.01" value="{{ $examResult->mid_term_raw ?? $examResult->mid_term_mark }}" data-type="mid_term">
                         </td>
                         <td>
-                            <input type="number" name="mid_term_max" id="mid_term_max" class="form-control max-mark" min="1" step="0.01" value="{{ $examResult->mid_term_max ?? 100 }}" required data-type="mid_term">
+                            <input type="number" name="mid_term_max" id="mid_term_max" class="form-control max-mark" min="1" step="0.01" value="{{ $examResult->mid_term_max ?? 100 }}" data-type="mid_term">
                             <input type="hidden" name="mid_term_mark" class="percentage-field" value="{{ $examResult->mid_term_mark }}" data-type="mid_term">
                         </td>
                         <td><span class="percentage-display" data-type="mid_term">{{ number_format($examResult->mid_term_mark ?? 0, 2) }}%</span></td>
                         <td>
-                            <input type="number" name="end_term_raw" id="end_term_raw" class="form-control raw-mark" min="0" step="0.01" value="{{ $examResult->end_term_raw ?? $examResult->end_of_term_mark }}" required data-type="end_term">
+                            <input type="number" name="end_term_raw" id="end_term_raw" class="form-control raw-mark" min="0" step="0.01" value="{{ $examResult->end_term_raw ?? $examResult->end_of_term_mark }}" data-type="end_term">
                         </td>
                         <td>
-                            <input type="number" name="end_term_max" id="end_term_max" class="form-control max-mark" min="1" step="0.01" value="{{ $examResult->end_term_max ?? 100 }}" required data-type="end_term">
+                            <input type="number" name="end_term_max" id="end_term_max" class="form-control max-mark" min="1" step="0.01" value="{{ $examResult->end_term_max ?? 100 }}" data-type="end_term">
                             <input type="hidden" name="end_of_term_mark" class="percentage-field" value="{{ $examResult->end_of_term_mark }}" data-type="end_term">
                         </td>
                         <td><span class="percentage-display" data-type="end_term">{{ number_format($examResult->end_of_term_mark ?? 0, 2) }}%</span></td>
                     @else
                         <td>
-                            <input type="number" name="mid_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->mid_term_mark }}" required>
+                            <input type="number" name="mid_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->mid_term_mark }}">
                         </td>
                         <td>
-                            <input type="number" name="end_of_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->end_of_term_mark }}" required>
+                            <input type="number" name="end_of_term_mark" class="form-control" min="0" max="100" value="{{ $examResult->end_of_term_mark }}">
                         </td>
                     @endif
                 </tr>

@@ -76,6 +76,8 @@
             </select>
         </div>
 
+        {{-- Marks are optional per pupil: enter Mid-Term only, End-of-Term only, or leave a row blank to skip that pupil. --}}
+
         @if(request('entry_type', 'bulk') == 'single' && !empty($pupilId))
             @php
                 $selectedPupil = $pupils->find($pupilId);
@@ -110,27 +112,27 @@
                         <td>{{ $selectedPupil->first_name }} {{ $selectedPupil->last_name }}</td>
                         @if (Auth::user()->isPremium())
                             <td>
-                                <input type="number" name="single_pupil[mid_term_raw]" class="form-control raw-mark" min="0" step="0.01" required data-type="mid_term">
+                                <input type="number" name="single_pupil[mid_term_raw]" class="form-control raw-mark" min="0" step="0.01" data-type="mid_term">
                             </td>
                             <td>
-                                <input type="number" name="single_pupil[mid_term_max]" class="form-control max-mark" min="1" step="0.01" required data-type="mid_term">
+                                <input type="number" name="single_pupil[mid_term_max]" class="form-control max-mark" min="1" step="0.01" data-type="mid_term">
                                 <input type="hidden" name="single_pupil[mid_term_mark]" class="percentage-field" value="" data-type="mid_term">
                             </td>
                             <td><span class="percentage-display" data-type="mid_term">0.00%</span></td>
                             <td>
-                                <input type="number" name="single_pupil[end_term_raw]" class="form-control raw-mark" min="0" step="0.01" required data-type="end_term">
+                                <input type="number" name="single_pupil[end_term_raw]" class="form-control raw-mark" min="0" step="0.01" data-type="end_term">
                             </td>
                             <td>
-                                <input type="number" name="single_pupil[end_term_max]" class="form-control max-mark" min="1" step="0.01" required data-type="end_term">
+                                <input type="number" name="single_pupil[end_term_max]" class="form-control max-mark" min="1" step="0.01" data-type="end_term">
                                 <input type="hidden" name="single_pupil[end_of_term_mark]" class="percentage-field" value="" data-type="end_term">
                             </td>
                             <td><span class="percentage-display" data-type="end_term">0.00%</span></td>
                         @else
                             <td>
-                                <input type="number" name="single_pupil[mid_term_mark]" class="form-control" min="0" max="100" required>
+                                <input type="number" name="single_pupil[mid_term_mark]" class="form-control" min="0" max="100">
                             </td>
                             <td>
-                                <input type="number" name="single_pupil[end_of_term_mark]" class="form-control" min="0" max="100" required>
+                                <input type="number" name="single_pupil[end_of_term_mark]" class="form-control" min="0" max="100">
                             </td>
                         @endif
                         <td>
@@ -183,27 +185,27 @@
                             <td>{{ $pupil->first_name }} {{ $pupil->last_name }}</td>
                             @if (Auth::user()->isPremium())
                                 <td>
-                                    <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_raw]" class="form-control raw-mark" min="0" step="0.01" required data-type="mid_term_{{ $pupil->id }}">
+                                    <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_raw]" class="form-control raw-mark" min="0" step="0.01" data-type="mid_term_{{ $pupil->id }}">
                                 </td>
                                 <td>
-                                    <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_max]" class="form-control max-mark" min="1" step="0.01" required data-type="mid_term_{{ $pupil->id }}">
+                                    <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_max]" class="form-control max-mark" min="1" step="0.01" data-type="mid_term_{{ $pupil->id }}">
                                     <input type="hidden" name="pupil_results[{{ $pupil->id }}][mid_term_mark]" class="percentage-field" value="" data-type="mid_term_{{ $pupil->id }}">
                                 </td>
                                 <td><span class="percentage-display" data-type="mid_term_{{ $pupil->id }}">0.00%</span></td>
                                 <td>
-                                    <input type="number" name="pupil_results[{{ $pupil->id }}][end_term_raw]" class="form-control raw-mark" min="0" step="0.01" required data-type="end_term_{{ $pupil->id }}">
+                                    <input type="number" name="pupil_results[{{ $pupil->id }}][end_term_raw]" class="form-control raw-mark" min="0" step="0.01" data-type="end_term_{{ $pupil->id }}">
                                 </td>
                                 <td>
-                                    <input type="number" name="pupil_results[{{ $pupil->id }}][end_term_max]" class="form-control max-mark" min="1" step="0.01" required data-type="end_term_{{ $pupil->id }}">
+                                    <input type="number" name="pupil_results[{{ $pupil->id }}][end_term_max]" class="form-control max-mark" min="1" step="0.01" data-type="end_term_{{ $pupil->id }}">
                                     <input type="hidden" name="pupil_results[{{ $pupil->id }}][end_of_term_mark]" class="percentage-field" value="" data-type="end_term_{{ $pupil->id }}">
                                 </td>
                                 <td><span class="percentage-display" data-type="end_term_{{ $pupil->id }}">0.00%</span></td>
                             @else
                                 <td>
-                                    <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_mark]" class="form-control" min="0" max="100" required>
+                                    <input type="number" name="pupil_results[{{ $pupil->id }}][mid_term_mark]" class="form-control" min="0" max="100">
                                 </td>
                                 <td>
-                                    <input type="number" name="pupil_results[{{ $pupil->id }}][end_of_term_mark]" class="form-control" min="0" max="100" required>
+                                    <input type="number" name="pupil_results[{{ $pupil->id }}][end_of_term_mark]" class="form-control" min="0" max="100">
                                 </td>
                             @endif
                             <td>

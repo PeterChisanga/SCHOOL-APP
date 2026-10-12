@@ -253,104 +253,108 @@ class ExamController extends Controller {
             'term' => 'required|string|max:255',
         ];
 
+        // Marks are optional: a pupil may have only mid-term, only end-of-term,
+        // or no marks at all (their row is then skipped).
+        $markRule = 'nullable|numeric|min:0|max:100';
+        $rawRule  = 'nullable|numeric|min:0';
+        $maxRule  = 'nullable|numeric|min:1';
+
+        $single = $request->entry_type == 'single' && !empty($request->single_pupil['pupil_id']);
+        $prefix = $single ? 'single_pupil' : 'pupil_results.*';
+
         if ($isPremium) {
-            if ($request->entry_type == 'single' && !empty($request->single_pupil['pupil_id'])) {
-                $validationRules += [
-                    'single_pupil.mid_term_raw' => 'required|numeric|min:0',
-                    'single_pupil.mid_term_max' => 'required|numeric|min:1',
-                    'single_pupil.end_term_raw' => 'required|numeric|min:0',
-                    'single_pupil.end_term_max' => 'required|numeric|min:1',
-                ];
-            } else {
-                // Bulk (premium) uses pupil_results array
-                $validationRules += [
-                    'pupil_results.*.mid_term_raw' => 'required|numeric|min:0',
-                    'pupil_results.*.mid_term_max' => 'required|numeric|min:1',
-                    'pupil_results.*.end_term_raw' => 'required|numeric|min:0',
-                    'pupil_results.*.end_term_max' => 'required|numeric|min:1',
-                ];
-            }
+            $validationRules += [
+                "{$prefix}.mid_term_raw"  => $rawRule,
+                "{$prefix}.mid_term_max"  => $maxRule,
+                "{$prefix}.end_term_raw"  => $rawRule,
+                "{$prefix}.end_term_max"  => $maxRule,
+            ];
         } else {
-            if ($request->entry_type == 'single' && !empty($request->single_pupil['pupil_id'])) {
-                $validationRules += [
-                    'single_pupil.mid_term_mark' => 'required|numeric|min:0|max:100',
-                    'single_pupil.end_of_term_mark' => 'required|numeric|min:0|max:100',
-                ];
-            } else {
-                $validationRules += [
-                    'pupil_results.*.mid_term_mark' => 'required|numeric|min:0|max:100',
-                    'pupil_results.*.end_of_term_mark' => 'required|numeric|min:0|max:100',
-                ];
-            }
+            $validationRules += [
+                "{$prefix}.mid_term_mark"    => $markRule,
+                "{$prefix}.end_of_term_mark" => $markRule,
+            ];
         }
 
         $this->validate($request, $validationRules);
 
-        if ($request->entry_type == 'single' && !empty($request->single_pupil['pupil_id'])) {
-            $pupilId = $request->single_pupil['pupil_id'];
-            $data = $request->single_pupil;
+        // Normalise a submitted number: blank/null stays null so it can be skipped.
+        $num = function ($value) {
+            return ($value === null || $value === '') ? null : (float) $value;
+        };
 
-            $examResultData = [
-                'pupil_id' => $pupilId,
+        // Build one result row, or null when the pupil has no marks at all.
+        $build = function ($pupilId, array $data) use ($request, $isPremium, $num) {
+            $row = [
+                'pupil_id'   => $pupilId,
                 'subject_id' => $request->subject_id,
-                'term' => $request->term,
-                'comments' => $data['comments'] ?? null,
+                'term'       => $request->term,
+                'comments'   => $data['comments'] ?? null,
             ];
 
             if ($isPremium) {
-                $midTermPercentage = ($data['mid_term_max'] > 0) ? min(($data['mid_term_raw'] / $data['mid_term_max']) * 100, 100) : 0;
-                $endTermPercentage = ($data['end_term_max'] > 0) ? min(($data['end_term_raw'] / $data['end_term_max']) * 100, 100) : 0;
+                $midRaw = $num($data['mid_term_raw'] ?? null);
+                $midMax = $num($data['mid_term_max'] ?? null);
+                $endRaw = $num($data['end_term_raw'] ?? null);
+                $endMax = $num($data['end_term_max'] ?? null);
 
-                $examResultData += [
-                    'mid_term_raw' => $data['mid_term_raw'],
-                    'mid_term_max' => $data['mid_term_max'],
-                    'mid_term_mark' => $midTermPercentage,
-                    'end_term_raw' => $data['end_term_raw'],
-                    'end_term_max' => $data['end_term_max'],
-                    'end_of_term_mark' => $endTermPercentage,
+                $midMark = ($midRaw !== null && $midMax !== null && $midMax > 0)
+                    ? min(($midRaw / $midMax) * 100, 100) : null;
+                $endMark = ($endRaw !== null && $endMax !== null && $endMax > 0)
+                    ? min(($endRaw / $endMax) * 100, 100) : null;
+
+                $row += [
+                    'mid_term_raw'     => $midRaw,
+                    'mid_term_max'     => $midMax,
+                    'mid_term_mark'    => $midMark,
+                    'end_term_raw'     => $endRaw,
+                    'end_term_max'     => $endMax,
+                    'end_of_term_mark' => $endMark,
                 ];
+
+                $hasMarks = $midRaw !== null || $endRaw !== null;
             } else {
-                $examResultData += [
-                    'mid_term_mark' => $data['mid_term_mark'],
-                    'end_of_term_mark' => $data['end_of_term_mark'],
+                $midMark = $num($data['mid_term_mark'] ?? null);
+                $endMark = $num($data['end_of_term_mark'] ?? null);
+
+                $row += [
+                    'mid_term_mark'    => $midMark,
+                    'end_of_term_mark' => $endMark,
                 ];
+
+                $hasMarks = $midMark !== null || $endMark !== null;
             }
 
-            ExamResult::create($examResultData);
-        } else {
+            return $hasMarks ? $row : null;
+        };
+
+        $rows = [];
+
+        if ($single) {
+            $data = $request->single_pupil;
+            $row  = $build($data['pupil_id'], $data);
+            if ($row) {
+                $rows[] = $row;
+            }
+        } elseif (!empty($request->pupil_results)) {
             foreach ($request->pupil_results as $pupilId => $result) {
-                $examResultData = [
-                    'pupil_id' => $pupilId,
-                    'subject_id' => $request->subject_id,
-                    'term' => $request->term,
-                    'comments' => $result['comments'] ?? null,
-                ];
-
-                if ($isPremium) {
-                    $midTermPercentage = ($result['mid_term_max'] > 0) ? min(($result['mid_term_raw'] / $result['mid_term_max']) * 100, 100) : 0;
-                    $endTermPercentage = ($result['end_term_max'] > 0) ? min(($result['end_term_raw'] / $result['end_term_max']) * 100, 100) : 0;
-
-                    $examResultData += [
-                        'mid_term_raw' => $result['mid_term_raw'],
-                        'mid_term_max' => $result['mid_term_max'],
-                        'mid_term_mark' => $midTermPercentage,
-                        'end_term_raw' => $result['end_term_raw'],
-                        'end_term_max' => $result['end_term_max'],
-                        'end_of_term_mark' => $endTermPercentage,
-                    ];
-                } else {
-                    $examResultData += [
-                        'mid_term_mark' => $result['mid_term_mark'],
-                        'end_of_term_mark' => $result['end_of_term_mark'],
-                    ];
+                $row = $build($pupilId, $result);
+                if ($row) {
+                    $rows[] = $row;
                 }
-
-                ExamResult::create($examResultData);
             }
         }
 
+        if (empty($rows)) {
+            return redirect()->back()->withErrors(['marks' => 'No marks entered. Please fill in at least one pupil.'])->withInput();
+        }
+
+        foreach ($rows as $row) {
+            ExamResult::create($row);
+        }
+
         return redirect()->route('examResults.index')
-            ->with('success', 'Exam results saved successfully!');
+            ->with('success', count($rows) . ' exam result(s) saved successfully!');
     }
 
     public function show(ExamResult $examResult) {
@@ -379,7 +383,11 @@ class ExamController extends Controller {
 
             $pupilTotals = $classResults->groupBy('pupil_id')->map(function ($pupilResults) {
                 $total = $pupilResults->sum(function ($result) {
-                    return ($result->mid_term_mark + $result->end_of_term_mark) / 2;
+                    $marks = array_filter(
+                        [$result->mid_term_mark, $result->end_of_term_mark],
+                        fn ($m) => $m !== null
+                    );
+                    return $marks ? array_sum($marks) / count($marks) : 0;
                 });
                 return [
                     'pupil_id' => $pupilResults->first()->pupil_id,
@@ -633,15 +641,15 @@ class ExamController extends Controller {
 
         if ($isPremium) {
             $validationRules += [
-                'mid_term_raw' => 'required|numeric|min:0',
-                'mid_term_max' => 'required|numeric|min:1',
-                'end_term_raw' => 'required|numeric|min:0',
-                'end_term_max' => 'required|numeric|min:1',
+                'mid_term_raw' => 'nullable|numeric|min:0',
+                'mid_term_max' => 'nullable|numeric|min:1',
+                'end_term_raw' => 'nullable|numeric|min:0',
+                'end_term_max' => 'nullable|numeric|min:1',
             ];
         } else {
             $validationRules += [
-                'mid_term_mark' => 'required|numeric|min:0|max:100',
-                'end_of_term_mark' => 'required|numeric|min:0|max:100',
+                'mid_term_mark' => 'nullable|numeric|min:0|max:100',
+                'end_of_term_mark' => 'nullable|numeric|min:0|max:100',
             ];
         }
 
@@ -653,29 +661,38 @@ class ExamController extends Controller {
             'comments' => $request->comments,
         ];
 
+        $num = function ($value) {
+            return ($value === null || $value === '') ? null : (float) $value;
+        };
+
         if ($isPremium) {
-            if ($request->mid_term_raw > $request->mid_term_max) {
+            $midRaw = $num($request->mid_term_raw);
+            $midMax = $num($request->mid_term_max);
+            $endRaw = $num($request->end_term_raw);
+            $endMax = $num($request->end_term_max);
+
+            if ($midRaw !== null && $midMax !== null && $midRaw > $midMax) {
                 return redirect()->back()->withErrors(['mid_term_raw' => 'Mid-term raw mark cannot exceed total mark.']);
             }
-            if ($request->end_term_raw > $request->end_term_max) {
+            if ($endRaw !== null && $endMax !== null && $endRaw > $endMax) {
                 return redirect()->back()->withErrors(['end_term_raw' => 'End-term raw mark cannot exceed total mark.']);
             }
 
-            $midTermPercentage = ($request->mid_term_max > 0) ? min(($request->mid_term_raw / $request->mid_term_max) * 100, 100) : 0;
-            $endTermPercentage = ($request->end_term_max > 0) ? min(($request->end_term_raw / $request->end_term_max) * 100, 100) : 0;
+            $midMark = ($midRaw !== null && $midMax !== null && $midMax > 0) ? min(($midRaw / $midMax) * 100, 100) : null;
+            $endMark = ($endRaw !== null && $endMax !== null && $endMax > 0) ? min(($endRaw / $endMax) * 100, 100) : null;
 
             $updateData += [
-                'mid_term_raw' => $request->mid_term_raw,
-                'mid_term_max' => $request->mid_term_max,
-                'mid_term_mark' => $midTermPercentage,
-                'end_term_raw' => $request->end_term_raw,
-                'end_term_max' => $request->end_term_max,
-                'end_of_term_mark' => $endTermPercentage,
+                'mid_term_raw'     => $midRaw,
+                'mid_term_max'     => $midMax,
+                'mid_term_mark'    => $midMark,
+                'end_term_raw'     => $endRaw,
+                'end_term_max'     => $endMax,
+                'end_of_term_mark' => $endMark,
             ];
         } else {
             $updateData += [
-                'mid_term_mark' => $request->mid_term_mark,
-                'end_of_term_mark' => $request->end_of_term_mark,
+                'mid_term_mark'    => $num($request->mid_term_mark),
+                'end_of_term_mark' => $num($request->end_of_term_mark),
             ];
         }
 
