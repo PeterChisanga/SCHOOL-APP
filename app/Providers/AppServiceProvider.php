@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\School;
+use App\Observers\SchoolObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,5 +24,7 @@ class AppServiceProvider extends ServiceProvider
         if (env('APP_ENV') == 'production') {
             $this->app['request']->server->set('HTTPS', true);
         }
+
+        School::observe(SchoolObserver::class);
     }
 }

@@ -41,26 +41,6 @@
 
                 {{-- PRICING CARDS — YEARLY IS KING --}}
                 <div class="row g-4 justify-content-center mb-5">
-                    {{-- Monthly Plan --}}
-                    <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body text-center p-4">
-                                <h4 class="fw-bold text-muted">Monthly</h4>
-                                <div class="my-4">
-                                    <span class="display-4 fw-bold text-primary">K450</span>
-                                    <small class="text-muted">/ month</small>
-                                </div>
-                                <ul class="list-unstyled text-start mb-4">
-                                    <li><i class="fas fa-check text-success"></i> All Premium Features</li>
-                                    <li><i class="fas fa-check text-success"></i> WhatsApp Results</li>
-                                    <li><i class="fas fa-check text-success"></i> Delete Incomes</li>
-                                </ul>
-                                <a href="https://wa.me/260765574796?text=Hello!%20I%20want%20to%20pay%20K450%20Monthly%20for%20{{ urlencode(Auth::user()->school->name) }}%20Premium"
-                                   target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary w-100">Choose Monthly</a>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- Term Plan --}}
                     <div class="col-md-4">
                         <div class="card h-100 border-0 shadow-sm">
@@ -75,7 +55,7 @@
                                     <li><i class="fas fa-check text-success"></i> 4 Months Access</li>
                                     <li><i class="fas fa-check text-success"></i> Best for short-term</li>
                                 </ul>
-                                <a href="https://wa.me/260765574796?text=Hello!%20I%20want%20to%20pay%20K1,700%20Per%20Term%20for%20{{ urlencode(Auth::user()->school->name) }}%20Premium"
+                                <a href="https://wa.me/260967595130?text=Hello!%20I%20want%20to%20pay%20K1,700%20Per%20Term%20for%20{{ urlencode(Auth::user()->school->name) }}%20Premium"
                                   target="_blank" rel="noopener noreferrer" class="btn btn-outline-info w-100">Choose Term</a>
                             </div>
                         </div>
@@ -106,7 +86,7 @@
                                     <li><i class="fas fa-check text-success fa-lg"></i> All Premium Features</li>
                                     <li><i class="fas fa-check text-success fa-lg"></i> Priority Support</li>
                                 </ul>
-                                <a href="https://wa.me/260765574796?text=Hello!%20I%20want%20to%20pay%20K5,000%20Yearly%20(MOST%20POPULAR)%20for%20{{ urlencode(Auth::user()->school->name) }}%20Premium"
+                                <a href="https://wa.me/260967595130?text=Hello!%20I%20want%20to%20pay%20K5,000%20Yearly%20(MOST%20POPULAR)%20for%20{{ urlencode(Auth::user()->school->name) }}%20Premium"
                                   target="_blank" rel="noopener noreferrer" class="btn btn-success btn-lg w-100 shadow-lg">
                                     <i class="fab fa-whatsapp"></i> Choose Annual (Recommended)
                                 </a>
@@ -133,7 +113,7 @@
                                         <div class="text-start">
                                             <i class="fab fa-whatsapp text-success fa-3x mb-3"></i>
                                             <h5>WhatsApp / Call</h5>
-                                            <a href="https://wa.me/260765574796" class="fs-5 text-success">+260 765 574 796</a>
+                                            <a href="https://wa.me/260967595130" class="fs-5 text-success">+260 967 595 130</a>
                                         </div>
                                     </div>
                                 </div>
