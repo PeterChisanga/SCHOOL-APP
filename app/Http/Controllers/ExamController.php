@@ -350,7 +350,31 @@ class ExamController extends Controller {
         }
 
         foreach ($rows as $row) {
-            ExamResult::create($row);
+            $key = [
+                'pupil_id'   => $row['pupil_id'],
+                'subject_id' => $row['subject_id'],
+                'term'       => $row['term'],
+            ];
+
+            $existing = ExamResult::where($key)->first();
+
+            if ($existing) {
+                // Update only the marks actually submitted this time, so entering
+                // a mid-term does not wipe an existing end-of-term mark.
+                $patch = [];
+                foreach (['mid_term_mark', 'mid_term_raw', 'mid_term_max',
+                          'end_of_term_mark', 'end_term_raw', 'end_term_max'] as $field) {
+                    if (($row[$field] ?? null) !== null) {
+                        $patch[$field] = $row[$field];
+                    }
+                }
+                if (! empty($row['comments'])) {
+                    $patch['comments'] = $row['comments'];
+                }
+                $existing->update($patch);
+            } else {
+                ExamResult::create($row);
+            }
         }
 
         return redirect()->route('examResults.index')
@@ -655,6 +679,18 @@ class ExamController extends Controller {
 
         $this->validate($request, $validationRules);
 
+        $conflict = ExamResult::where('pupil_id', $examResult->pupil_id)
+            ->where('subject_id', $request->subject_id)
+            ->where('term', $request->term)
+            ->where('id', '!=', $examResult->id)
+            ->exists();
+
+        if ($conflict) {
+            return redirect()->back()->withErrors([
+                'subject_id' => 'A result for this subject and term already exists for this pupil.',
+            ])->withInput();
+        }
+
         $updateData = [
             'subject_id' => $request->subject_id,
             'term' => $request->term,
@@ -700,6 +736,129 @@ class ExamController extends Controller {
 
         return redirect()->route('examResults.index')
             ->with('success', 'Exam result updated successfully!');
+    }
+
+    /**
+     * Show one pupil's whole-term results in a single editable table
+     * (one row per subject), so re-entry updates instead of duplicating.
+     */
+    public function editTerm(Pupil $pupil, $term)
+    {
+        $schoolId = Auth::user()->school_id;
+
+        if ($pupil->school_id !== $schoolId) {
+            return redirect()->route('examResults.index')
+                ->with('error', 'You are not authorized to edit these results.');
+        }
+
+        $subjects = Subject::where('school_id', $schoolId)->orderBy('name')->get();
+
+        $results = $pupil->examResults()
+            ->where('term', $term)
+            ->get()
+            ->keyBy('subject_id');
+
+        return view('examResults.edit-term', compact('pupil', 'term', 'subjects', 'results'));
+    }
+
+    /**
+     * Save the whole-term edit form. Blanking both halves of a subject
+     * removes that result; otherwise the row is created or updated.
+     */
+    public function updateTerm(Request $request, Pupil $pupil, $term)
+    {
+        $schoolId = Auth::user()->school_id;
+
+        if ($pupil->school_id !== $schoolId) {
+            return redirect()->route('examResults.index')
+                ->with('error', 'You are not authorized to update these results.');
+        }
+
+        $isPremium = Auth::user()->isPremium();
+
+        $request->validate([
+            'results.*.mid_term_mark'    => 'nullable|numeric|min:0|max:100',
+            'results.*.end_of_term_mark' => 'nullable|numeric|min:0|max:100',
+            'results.*.mid_term_raw'     => 'nullable|numeric|min:0',
+            'results.*.mid_term_max'     => 'nullable|numeric|min:1',
+            'results.*.end_term_raw'     => 'nullable|numeric|min:0',
+            'results.*.end_term_max'     => 'nullable|numeric|min:1',
+        ]);
+
+        $num = function ($value) {
+            return ($value === null || $value === '') ? null : (float) $value;
+        };
+
+        $saved = 0;
+
+        foreach ($request->input('results', []) as $subjectId => $data) {
+            $key = ['pupil_id' => $pupil->id, 'subject_id' => $subjectId, 'term' => $term];
+
+            if ($isPremium) {
+                $midRaw = $num($data['mid_term_raw'] ?? null);
+                $midMax = $num($data['mid_term_max'] ?? null);
+                $endRaw = $num($data['end_term_raw'] ?? null);
+                $endMax = $num($data['end_term_max'] ?? null);
+
+                $midMark = ($midRaw !== null && $midMax !== null && $midMax > 0)
+                    ? min(($midRaw / $midMax) * 100, 100) : null;
+                $endMark = ($endRaw !== null && $endMax !== null && $endMax > 0)
+                    ? min(($endRaw / $endMax) * 100, 100) : null;
+
+                $hasMarks = $midRaw !== null || $endRaw !== null;
+            } else {
+                $midRaw = $midMax = $endRaw = $endMax = null;
+
+                $midMark = $num($data['mid_term_mark'] ?? null);
+                $endMark = $num($data['end_of_term_mark'] ?? null);
+
+                $hasMarks = $midMark !== null || $endMark !== null;
+            }
+
+            $existing = ExamResult::where($key)->first();
+
+            // Both halves cleared -> drop the record entirely.
+            if (! $hasMarks) {
+                if ($existing) {
+                    $existing->delete();
+                }
+                continue;
+            }
+
+            ExamResult::updateOrCreate($key, $key + [
+                'mid_term_mark'    => $midMark,
+                'end_of_term_mark' => $endMark,
+                'mid_term_raw'     => $midRaw,
+                'mid_term_max'     => $midMax,
+                'end_term_raw'     => $endRaw,
+                'end_term_max'     => $endMax,
+                'comments'         => $data['comments'] ?? null,
+            ]);
+
+            $saved++;
+        }
+
+        return redirect()->route('examResults.index')
+            ->with('success', ucwords($term) . " results updated successfully ({$saved} subject(s)).");
+    }
+
+    /**
+     * Delete every result for one pupil in one term (matches what the index's
+     * Delete button promises).
+     */
+    public function destroyTerm(Pupil $pupil, $term)
+    {
+        $schoolId = Auth::user()->school_id;
+
+        if ($pupil->school_id !== $schoolId) {
+            return redirect()->route('examResults.index')
+                ->with('error', 'You are not authorized to delete these results.');
+        }
+
+        $deleted = ExamResult::where('pupil_id', $pupil->id)->where('term', $term)->delete();
+
+        return redirect()->route('examResults.index')
+            ->with('success', "Deleted {$deleted} result(s) for " . ucwords($term) . '.');
     }
 
     public function destroy(ExamResult $examResult) {

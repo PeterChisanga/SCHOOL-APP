@@ -82,7 +82,7 @@ class PaymentController extends Controller {
                 $balance = number_format($payments->sum('balance'), 2);
                 $school  = $pupil->school->name ?? 'School';
 
-                $message = "Dear parent, {$name} has an outstanding fee balance of K{$balance}. Kindly settle the balance. - {$school}";
+                $message = "Dear parent, {$name} has an outstanding fee balance of K{$balance}. Kindly settle the balance. - {$school}\nhttps://e-schoolzambia.site/";
 
                 SendResultsSmsJob::dispatch($pupil->parent->phone, $message);
                 $sent++;
@@ -107,11 +107,19 @@ class PaymentController extends Controller {
         $classes = ClassModel::where('school_id', $schoolId)->get();
 
         $classId = $request->input('class_id');
+        $search  = $request->input('search');
 
         $pupils = Pupil::with(['school', 'class'])
                     ->where('school_id', $schoolId)
                     ->when($classId, function ($query, $classId) {
                         return $query->where('class_id', $classId);
+                    })
+                    ->when($search, function ($query, $search) {
+                        return $query->where(function ($q) use ($search) {
+                            $q->where('first_name', 'like', "%{$search}%")
+                              ->orWhere('middle_name', 'like', "%{$search}%")
+                              ->orWhere('last_name', 'like', "%{$search}%");
+                        });
                     })
                     ->get();
 

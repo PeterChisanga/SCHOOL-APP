@@ -11,10 +11,21 @@ use Exception;
 
 class ParentController extends Controller
 {
-    public function index() {
+    public function index(Request $request) {
         try {
             $schoolId = Auth::user()->school_id;
-            $parents = ParentModel::where('school_id', $schoolId)->get();
+            $search   = $request->input('search');
+
+            $parents = ParentModel::where('school_id', $schoolId)
+                        ->when($search, function ($query, $search) {
+                            $query->where(function ($q) use ($search) {
+                                $q->where('first_name', 'like', "%{$search}%")
+                                  ->orWhere('last_name', 'like', "%{$search}%")
+                                  ->orWhere('phone', 'like', "%{$search}%")
+                                  ->orWhere('email', 'like', "%{$search}%");
+                            });
+                        })
+                        ->get();
 
             return view('parents.index', compact('parents'));
         } catch (Exception $e) {

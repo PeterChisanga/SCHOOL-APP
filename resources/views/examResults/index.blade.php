@@ -27,11 +27,13 @@
         <a href="{{ route('assessments.create') }}" class="btn btn-secondary">Enter Assessment Results</a>
 
         <!-- Button trigger modal (Supports both Bootstrap 4 and 5) -->
+        @if(auth()->user()->user_type !== 'teacher')
         <button type="button" class="btn btn-secondary"
             data-toggle="modal" data-target="#sendSmsModal"
             data-bs-toggle="modal" data-bs-target="#sendSmsModal">
             Send Results
         </button>
+        @endif
 </div>
 
 <!-- Send SMS Modal -->
@@ -267,11 +269,11 @@
                             class="btn btn-primary mr-1">
                             View
                         </a>
-                        <a href="{{ route('examResults.edit', $firstResult->id) }}"
+                        <a href="{{ route('examResults.edit-term', ['pupil' => $pupil->id, 'term' => $term]) }}"
                             class="btn btn-warning mr-1">
                             Edit
                         </a>
-                        <form action="{{ route('examResults.destroy', $firstResult->id) }}"
+                        <form action="{{ route('examResults.destroy-term', ['pupil' => $pupil->id, 'term' => $term]) }}"
                             method="POST" class="d-inline"
                             onsubmit="return confirm('Delete all results for {{ $pupil->first_name }} {{ $pupil->last_name }} - {{ ucfirst($term) }}?')">
                             @csrf

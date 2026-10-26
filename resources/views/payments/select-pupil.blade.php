@@ -6,7 +6,12 @@
 
     <form method="GET" action="{{ route('payments.select-pupil') }}" class="mb-4">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search Pupil</label>
+                <input type="text" name="search" id="search" class="form-control"
+                       value="{{ request('search') }}" placeholder="Name...">
+            </div>
+            <div class="col-md-4">
                 <label for="class_id" class="form-label">Filter by Class</label>
                 <select name="class_id" id="class_id" class="form-control" onchange="this.form.submit()">
                     <option value="">All Classes</option>
@@ -17,8 +22,9 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-6 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">Filter</button>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary mr-2">Filter</button>
+                <a href="{{ route('payments.select-pupil') }}" class="btn btn-secondary">Clear</a>
             </div>
         </div>
     </form>
