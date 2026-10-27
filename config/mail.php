@@ -114,6 +114,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Internal notification address
+    |--------------------------------------------------------------------------
+    |
+    | Where the platform's own alerts go (new school registered, payment
+    | received). Defaults to the address that used to be hardcoded, so this
+    | change is behaviour-neutral until the env var is set.
+    |
+    */
+
+    'notify_address' => env('MAIL_NOTIFY_ADDRESS', 'eschool240@gmail.com'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Markdown Mail Settings
     |--------------------------------------------------------------------------
     |

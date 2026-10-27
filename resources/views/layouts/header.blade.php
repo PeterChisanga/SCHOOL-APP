@@ -194,8 +194,8 @@
 
             <!-- settings -->
             @if (Auth::user()->user_type=='admin')
-            <li class="nav-item {{ request()->routeIs('schools.*') ? 'menu-open' : '' }}">
-                <a href="#" class="nav-link {{ request()->routeIs('schools.*') ? 'active' : '' }}">
+            <li class="nav-item {{ request()->routeIs('schools.*', 'fees.*') ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ request()->routeIs('schools.*', 'fees.*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-cog"></i>
                     <p>
                         Settings
@@ -207,6 +207,12 @@
                         <a href="{{ route('schools.show',Auth::user()->school->id) }}" class="nav-link {{ request()->routeIs('schools.show') ? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Customize school details</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('fees.index') }}" class="nav-link {{ request()->routeIs('fees.*') ? 'active' : '' }}">
+                            <i class="far fa-circle nav-icon"></i>
+                            <p>Fee Structure</p>
                         </a>
                     </li>
                 </ul>

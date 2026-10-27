@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Pupil;
 use App\Models\ClassModel;
+use App\Models\FeeStructure;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -67,6 +69,7 @@ class PupilController extends Controller {
                 'admission_date' => 'nullable|date',
                 'health_conditions' => 'nullable|string|max:255',
                 'class_id' => 'required|exists:classes,id',
+                'term' => 'nullable|string|max:20',
             ]);
 
             $schoolId = Auth::user()->school_id;
@@ -75,6 +78,30 @@ class PupilController extends Controller {
             $pupilData['school_id'] = $schoolId;
 
             $pupil = Pupil::create($pupilData);
+
+            // Apply the matching class/term fee structure so the pupil starts
+            // with pending fees. Manual "Add Payment" still works as before.
+            $term = $request->input('term', 'Term 1');
+
+            $fees = FeeStructure::where('school_id', $schoolId)
+                ->where('is_active', true)
+                ->where('term', $term)
+                ->where(function ($query) use ($pupil) {
+                    $query->whereNull('class_id')->orWhere('class_id', $pupil->class_id);
+                })
+                ->get();
+
+            foreach ($fees as $fee) {
+                Payment::create([
+                    'amount'      => $fee->amount,
+                    'amount_paid' => 0,
+                    'balance'     => $fee->amount,
+                    'type'        => $fee->type,
+                    'school_id'   => $schoolId,
+                    'pupil_id'    => $pupil->id,
+                    'term'        => $fee->term,
+                ]);
+            }
 
             return redirect()->route('pupils.show', $pupil->id)
                 ->with('success', 'Pupil Registered successfully!');

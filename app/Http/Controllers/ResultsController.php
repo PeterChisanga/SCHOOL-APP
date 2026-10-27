@@ -12,6 +12,10 @@ class ResultsController extends Controller
 {
     public function sendResults(Request $request, ResultsFormatter $formatter)
     {
+        if (Auth::user()->user_type === 'teacher') {
+            abort(403);
+        }
+
         // 1. Validate the selected term input from the modal
         $request->validate([
             'term' => 'required|string',
