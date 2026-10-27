@@ -63,6 +63,31 @@ return [
             ]) : [],
         ],
 
+        /*
+         * Read-only copy of the PRODUCTION database, restored from the latest
+         * phpMyAdmin dump. Used to rehearse migrations against real data
+         * before shipping. Point PRODCOPY_* at a slow/isolated host at will.
+         * Never write application data here.
+         */
+        'prod_copy' => [
+            'driver' => 'mysql',
+            'host' => env('PRODCOPY_HOST', '127.0.0.1'),
+            'port' => env('PRODCOPY_PORT', '3307'),
+            'database' => env('PRODCOPY_DATABASE', 'school_app_prod'),
+            'username' => env('PRODCOPY_USERNAME', 'app'),
+            'password' => env('PRODCOPY_PASSWORD', 'app'),
+            'unix_socket' => env('PRODCOPY_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),

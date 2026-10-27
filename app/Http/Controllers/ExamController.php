@@ -7,6 +7,8 @@ use App\Models\Subject;
 use App\Models\ClassModel;
 use App\Models\Pupil;
 use App\Models\School;
+use App\Services\ExamResultArchive;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -356,24 +358,30 @@ class ExamController extends Controller {
                 'term'       => $row['term'],
             ];
 
-            $existing = ExamResult::where($key)->first();
+            // Update only the marks actually submitted this time, so entering
+            // a mid-term does not wipe an existing end-of-term mark.
+            $patch = [];
+            foreach (['mid_term_mark', 'mid_term_raw', 'mid_term_max',
+                      'end_of_term_mark', 'end_term_raw', 'end_term_max'] as $field) {
+                if (($row[$field] ?? null) !== null) {
+                    $patch[$field] = $row[$field];
+                }
+            }
+            if (! empty($row['comments'])) {
+                $patch['comments'] = $row['comments'];
+            }
 
-            if ($existing) {
-                // Update only the marks actually submitted this time, so entering
-                // a mid-term does not wipe an existing end-of-term mark.
-                $patch = [];
-                foreach (['mid_term_mark', 'mid_term_raw', 'mid_term_max',
-                          'end_of_term_mark', 'end_term_raw', 'end_term_max'] as $field) {
-                    if (($row[$field] ?? null) !== null) {
-                        $patch[$field] = $row[$field];
-                    }
+            // One result per pupil/subject/term is enforced by a unique index, so
+            // this must never blind-insert: two teachers saving the same pupil at
+            // the same moment would otherwise collide with a 500.
+            try {
+                ExamResult::updateOrCreate($key, $patch);
+            } catch (QueryException $e) {
+                if (! $this->isDuplicateKey($e)) {
+                    throw $e;
                 }
-                if (! empty($row['comments'])) {
-                    $patch['comments'] = $row['comments'];
-                }
-                $existing->update($patch);
-            } else {
-                ExamResult::create($row);
+
+                ExamResult::where($key)->update($patch);
             }
         }
 
@@ -817,10 +825,10 @@ class ExamController extends Controller {
 
             $existing = ExamResult::where($key)->first();
 
-            // Both halves cleared -> drop the record entirely.
+            // Both halves cleared -> retire the record (archived, not destroyed).
             if (! $hasMarks) {
                 if ($existing) {
-                    $existing->delete();
+                    ExamResultArchive::move([$existing], ExamResultArchive::REASON_MANUAL, Auth::id());
                 }
                 continue;
             }
@@ -855,10 +863,23 @@ class ExamController extends Controller {
                 ->with('error', 'You are not authorized to delete these results.');
         }
 
-        $deleted = ExamResult::where('pupil_id', $pupil->id)->where('term', $term)->delete();
+        $deleted = ExamResultArchive::moveQuery(
+            ExamResult::where('pupil_id', $pupil->id)->where('term', $term),
+            ExamResultArchive::REASON_MANUAL,
+            Auth::id()
+        );
 
         return redirect()->route('examResults.index')
             ->with('success', "Deleted {$deleted} result(s) for " . ucwords($term) . '.');
+    }
+
+    /**
+     * SQLSTATE 23000 / MySQL 1062 — a unique index rejected the write because
+     * another request created the same result a moment earlier.
+     */
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        return $e->getCode() === '23000' || ($e->errorInfo[1] ?? null) === 1062;
     }
 
     public function destroy(ExamResult $examResult) {
@@ -869,7 +890,7 @@ class ExamController extends Controller {
                 ->with('error', 'You are not authorized to delete this exam result.');
         }
 
-        $examResult->delete();
+        ExamResultArchive::move([$examResult], ExamResultArchive::REASON_MANUAL, Auth::id());
 
         return redirect()->route('examResults.index')
             ->with('success', 'Exam result deleted successfully!');

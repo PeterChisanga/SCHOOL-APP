@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\ExamResultArchive;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Pupil extends Model
 {
@@ -31,7 +33,13 @@ class Pupil extends Model
                 $pupil->parent->delete();
             }
 
-            $pupil->examResults()->delete();
+            // A deleted pupil must not take their marks with them: results go to
+            // the archive, where they can still be read with plain SQL.
+            ExamResultArchive::move(
+                $pupil->examResults()->get(),
+                ExamResultArchive::REASON_PUPIL_DELETED,
+                Auth::id()
+            );
 
             $pupil->payments()->delete();
         });
