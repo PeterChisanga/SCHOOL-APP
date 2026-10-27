@@ -7,12 +7,21 @@ use App\Mail\SchoolWelcome;
 use App\Mail\SchoolRegistered;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * All platform email goes through here.
+ *
+ * Every failure is caught and logged rather than thrown, so a broken SMTP
+ * setup never blocks a registration or a payment webhook. The price is that a
+ * failure is invisible in the UI — that is what `php artisan mail:diagnose`
+ * exists for, and why each log line names the recipient, the exception class
+ * and the message.
+ */
 class NotificationService
 {
     /**
      * Send the welcome email when a new school is registered.
      */
-    /** public function sendWelcomeEmail($schoolName, $adminName, $adminEmail, $adminPhone)
+    public function sendWelcomeEmail($schoolName, $adminName, $adminEmail, $adminPhone)
     {
         try {
             Mail::to($adminEmail)->send(new SchoolWelcome(
@@ -21,27 +30,27 @@ class NotificationService
                 $adminEmail,
                 $adminPhone
             ));
-        } catch (\Exception $e) {
-            Log::error("Failed to send school welcome email: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("Failed to send school welcome email to {$adminEmail}: " . get_class($e) . ': ' . $e->getMessage());
         }
     }
-    */
 
     /**
-     * Alert Kapini Technologies when a new school is registered.
+     * Alert the platform owner when a new school is registered.
      */
     public function notifyKapiniOfNewSchool($schoolName, $adminName, $adminEmail, $adminPhone)
     {
+        $to = config('mail.notify_address');
+
         try {
-            // >>> replace with the Kapini Technologies email once confirmed <<<
-            Mail::to('eschool240@gmail.com')->send(new SchoolRegistered(
+            Mail::to($to)->send(new SchoolRegistered(
                 $schoolName,
                 $adminName,
                 $adminEmail,
                 $adminPhone
             ));
-        } catch (\Exception $e) {
-            Log::error("Failed to send Kapini school-registration alert: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("Failed to send school-registration alert to {$to}: " . get_class($e) . ': ' . $e->getMessage());
         }
     }
 
@@ -58,26 +67,28 @@ class NotificationService
                             ->subject("Payment Received - {$schoolName}");
                 }
             );
-        } catch (\Exception $e) {
-            Log::error("Failed to send school payment-received alert: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("Failed to send school payment-received alert to {$schoolEmail}: " . get_class($e) . ': ' . $e->getMessage());
         }
     }
 
     /**
-     * Alert Kapini Technologies when a parent's mobile money payment succeeds, for reconciliation.
+     * Alert the platform owner when a parent's mobile money payment succeeds, for reconciliation.
      */
     public function notifyKapiniOfPayment($schoolName, $pupilName, $amount, $reference)
     {
+        $to = config('mail.notify_address');
+
         try {
             Mail::raw(
                 "Payment received: K{$amount} from {$pupilName} ({$schoolName}). Ref: {$reference}.",
-                function ($message) use ($schoolName) {
-                    $message->to('eschool240@gmail.com')
+                function ($message) use ($to, $schoolName) {
+                    $message->to($to)
                             ->subject("Payment Received - {$schoolName}");
                 }
             );
-        } catch (\Exception $e) {
-            Log::error("Failed to send Kapini payment-received alert: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("Failed to send payment-received alert to {$to}: " . get_class($e) . ': ' . $e->getMessage());
         }
     }
 }

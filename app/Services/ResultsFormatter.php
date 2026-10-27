@@ -33,15 +33,19 @@ class ResultsFormatter
 
         //$message .= "\nTranscript: https://e-schoolzambia.site/results/{$pupil->id}/{$activeTerm}";
 
+        // School name, then the site link as the final line
         $position = $this->classPosition($pupil, $activeTerm);
         if ($position !== null) {
             $message .= "\nPosition in class: {$position}";
         }
 
         // School name as the last line of the message
+
         if ($schoolName = $pupil->school->name ?? null) {
             $message .= "\n{$schoolName}";
         }
+
+        $message .= "\nhttps://e-schoolzambia.site/";
 
         return trim($message);
     }

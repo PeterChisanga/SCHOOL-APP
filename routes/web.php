@@ -13,6 +13,7 @@ use App\Http\Controllers\ParentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\FeeStructureController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
@@ -146,12 +147,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('parents/create/{pupil}', [ParentController::class, 'create'])->name('parents.create');
     Route::get('parents/edit/{parent}', [ParentController::class, 'edit'])->name('parents.edit');
 
+    // Whole-term results editing (one editable row per subject)
+    Route::get('examResults/term/{pupil}/{term}', [ExamController::class, 'editTerm'])->name('examResults.edit-term');
+    Route::put('examResults/term/{pupil}/{term}', [ExamController::class, 'updateTerm'])->name('examResults.update-term');
+    Route::delete('examResults/term/{pupil}/{term}', [ExamController::class, 'destroyTerm'])->name('examResults.destroy-term');
+
     Route::resource('examResults', ExamController::class);
 
     Route::resource('assessments', AssessmentController::class);
 
     Route::resource('subjects', SubjectController::class);
     Route::resource('classes', ClassController::class);
+    Route::resource('fees', FeeStructureController::class)->except(['show']);
     Route::get('classes/exportPdf/{class}', [ClassController::class, 'exportPdf'])->name('classes.exportPdf');
     Route::resource('schools', SchoolController::class);
 });

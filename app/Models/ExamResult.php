@@ -12,7 +12,8 @@ class ExamResult extends Model
     protected $fillable = [
         'pupil_id', 'subject_id', 'term',
         'mid_term_mark', 'end_of_term_mark',
-        'mid_term_raw', 'mid_term_max', 'end_term_raw', 'end_term_max'
+        'mid_term_raw', 'mid_term_max', 'end_term_raw', 'end_term_max',
+        'comments',
     ];
 
     public function subject()

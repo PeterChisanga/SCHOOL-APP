@@ -12,6 +12,20 @@
         </div>
     @endif
 
+    <form method="GET" action="{{ route('parents.index') }}" class="mb-3">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="search" class="form-label">Search Parent</label>
+                <input type="text" name="search" id="search" class="form-control"
+                       value="{{ request('search') }}" placeholder="Name, phone or email...">
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary mr-2">Search</button>
+                <a href="{{ route('parents.index') }}" class="btn btn-secondary">Clear</a>
+            </div>
+        </div>
+    </form>
+
     <div class="table-responsive">
         <table class="table table-striped">
             <thead>

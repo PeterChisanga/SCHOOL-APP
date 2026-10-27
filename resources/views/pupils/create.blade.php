@@ -85,6 +85,15 @@
                                     @enderror
                                 </div>
 
+                                <div class="form-group">
+                                    <label for="term">{{ __('Apply fees for term') }}</label>
+                                    <select id="term" class="form-control @error('term') is-invalid @enderror" name="term">
+                                        @foreach(['Term 1', 'Term 2', 'Term 3'] as $termOption)
+                                            <option value="{{ $termOption }}" {{ old('term', 'Term 1') == $termOption ? 'selected' : '' }}>{{ $termOption }}</option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted">Pending fees set up for this class and term are added automatically.</small>
+                                </div>
 
                             </div>
 
