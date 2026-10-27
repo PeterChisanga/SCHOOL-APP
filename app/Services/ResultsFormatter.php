@@ -25,8 +25,8 @@ class ResultsFormatter
 
         foreach ($results as $result) {
             $subject = $result->subject?->name ?? "Subject";
-            $mid     = $result->mid_term_mark ?? '—';
-            $end     = $result->end_of_term_mark ?? '—';
+            $mid     = $result->mid_term_mark !== null ? round($result->mid_term_mark) : '—';
+            $end     = $result->end_of_term_mark !== null ? round($result->end_of_term_mark) : '—';
 
             $message .= "{$subject}: Mid {$mid}%, End {$end}%\n";
         }
@@ -34,6 +34,13 @@ class ResultsFormatter
         //$message .= "\nTranscript: https://e-schoolzambia.site/results/{$pupil->id}/{$activeTerm}";
 
         // School name, then the site link as the final line
+        $position = $this->classPosition($pupil, $activeTerm);
+        if ($position !== null) {
+            $message .= "\nPosition in class: {$position}";
+        }
+
+        // School name as the last line of the message
+
         if ($schoolName = $pupil->school->name ?? null) {
             $message .= "\n{$schoolName}";
         }
@@ -41,5 +48,46 @@ class ResultsFormatter
         $message .= "\nhttps://e-schoolzambia.site/";
 
         return trim($message);
+    }
+
+    public function classPosition(Pupil $pupil, string $term): ?int
+    {
+        $classId = $pupil->class_id;
+        if (!$classId) {
+            return null;
+        }
+
+        $totals = \App\Models\ExamResult::whereHas('pupil', fn($q) => $q->where('class_id', $classId))
+            ->where('term', $term)
+            ->get()
+            ->groupBy('pupil_id')
+            ->map(function ($results) {
+                $ends = $results->pluck('end_of_term_mark')->filter(fn($v) => $v !== null);
+                return $ends->isNotEmpty() ? (int) round($ends->avg()) : null;
+            })
+            ->filter(fn($v) => $v !== null)
+            ->sortDesc();
+
+        $position = 1;
+        $previousTotal = null;
+        $skipPositions = 0;
+
+        foreach ($totals as $pupilId => $total) {
+            if ($previousTotal !== $total) {
+                $position += $skipPositions;
+                $skipPositions = 1;
+            } else {
+                $skipPositions++;
+            }
+
+            if ((int) $pupilId === (int) $pupil->id) {
+                return $position;
+            }
+
+            $previousTotal = $total;
+        }
+
+        return null;
+    
     }
 }
