@@ -14,6 +14,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\FeeStructureController;
+use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\IncomeController;
@@ -159,6 +160,23 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('subjects', SubjectController::class);
     Route::resource('classes', ClassController::class);
     Route::resource('fees', FeeStructureController::class)->except(['show']);
+
+    // Timetable: one weekly template per term. Teacher routes come first so
+    // they are not swallowed by the {class} binding below.
+    Route::get('timetable', [TimetableController::class, 'index'])->name('timetable.index');
+    Route::get('timetable/mine', [TimetableController::class, 'mine'])->name('timetable.mine');
+    Route::get('timetable/print', [TimetableController::class, 'printView'])->name('timetable.print');
+    Route::get('timetable/pdf', [TimetableController::class, 'pdf'])->name('timetable.pdf');
+    Route::post('timetable/generate', [TimetableController::class, 'generate'])->name('timetable.generate');
+    Route::post('timetable/settings', [TimetableController::class, 'settings'])->name('timetable.settings');
+    Route::post('timetable/publish', [TimetableController::class, 'publish'])->name('timetable.publish');
+    Route::post('timetable/clear', [TimetableController::class, 'clear'])->name('timetable.clear');
+    Route::get('timetable/classes', [TimetableController::class, 'classes'])->name('timetable.classes');
+    Route::get('timetable/class/{class}/view', [TimetableController::class, 'classView'])->name('timetable.class.view');
+    Route::get('timetable/class/{class}/print', [TimetableController::class, 'classPrint'])->name('timetable.class.print');
+    Route::get('timetable/class/{class}/pdf', [TimetableController::class, 'classPdf'])->name('timetable.class.pdf');
+    Route::get('timetable/class/{class}', [TimetableController::class, 'grid'])->name('timetable.grid');
+    Route::put('timetable/class/{class}', [TimetableController::class, 'save'])->name('timetable.save');
     Route::get('classes/exportPdf/{class}', [ClassController::class, 'exportPdf'])->name('classes.exportPdf');
     Route::resource('schools', SchoolController::class);
 });
