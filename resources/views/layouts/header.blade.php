@@ -164,8 +164,36 @@
                             <p>Classes</p>
                         </a>
                     </li>
+                    @if (Auth::user()->user_type === 'admin')
+                    <li class="nav-item">
+                        <a href="{{ route('timetable.index') }}" class="nav-link {{ request()->routeIs('timetable.*') ? 'active' : '' }}">
+                            <i class="far fa-circle nav-icon"></i>
+                            <p>Timetable</p>
+                        </a>
+                    </li>
+                    @endif
                 </ul>
             </li>
+
+            <!-- Timetable (secretaries browse class timetables read-only) -->
+            @if (Auth::user()->user_type === 'secretary')
+            <li class="nav-item">
+                <a href="{{ route('timetable.classes') }}" class="nav-link {{ request()->routeIs('timetable.classes', 'timetable.class.*') ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-calendar-alt"></i>
+                    <p>Class Timetables</p>
+                </a>
+            </li>
+            @endif
+
+            <!-- Timetable (teachers read their own published week) -->
+            @if (Auth::user()->user_type === 'teacher')
+            <li class="nav-item">
+                <a href="{{ route('timetable.mine') }}" class="nav-link {{ request()->routeIs('timetable.mine') ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-calendar-alt"></i>
+                    <p>My Timetable</p>
+                </a>
+            </li>
+            @endif
 
             <!-- Examinations -->
             <li class="nav-item {{ request()->routeIs('examResults.*', 'assessments.*') ? 'menu-open' : '' }}">

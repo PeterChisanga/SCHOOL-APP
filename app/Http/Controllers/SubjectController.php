@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subject;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -26,7 +27,9 @@ class SubjectController extends Controller
 
     public function create() {
         try {
-            return view('subjects.create');
+            $teachers = Teacher::where('school_id', Auth::user()->school_id)->orderBy('last_name')->get();
+
+            return view('subjects.create', compact('teachers'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Something went wrong while loading the subject creation form.');
         }
@@ -36,13 +39,16 @@ class SubjectController extends Controller
         try {
             $this->validate($request, [
                 'name' => 'required|string|max:255',
+                'teacher_id' => 'nullable|integer',
             ]);
 
             $schoolId = Auth::user()->school_id;
+            $teacherId = $this->teacherId($request->input('teacher_id'), $schoolId);
 
             Subject::create([
                 'name' => $request->input('name'),
                 'school_id' => $schoolId,
+                'teacher_id' => $teacherId,
             ]);
 
             return redirect()->route('subjects.index')
@@ -53,6 +59,22 @@ class SubjectController extends Controller
             \Log::error('Error storing subject: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to create subject: ' . $e->getMessage())->withInput();
         }
+    }
+
+    /**
+     * The teacher must belong to the same school; anything else becomes null.
+     */
+    private function teacherId($teacherId, $schoolId): ?int
+    {
+        $teacherId = (int) $teacherId ?: null;
+
+        if (! $teacherId) {
+            return null;
+        }
+
+        return Teacher::where('school_id', $schoolId)->where('id', $teacherId)->exists()
+            ? $teacherId
+            : null;
     }
 
     public function show(Subject $subject) {
@@ -80,7 +102,9 @@ class SubjectController extends Controller
                     ->with('error', 'You are not authorized to edit this subject.');
             }
 
-            return view('subjects.edit', compact('subject'));
+            $teachers = Teacher::where('school_id', $schoolId)->orderBy('last_name')->get();
+
+            return view('subjects.edit', compact('subject', 'teachers'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Something went wrong while loading the subject edit form.');
         }
@@ -90,6 +114,7 @@ class SubjectController extends Controller
         try {
             $this->validate($request, [
                 'name' => 'required|string|max:255',
+                'teacher_id' => 'nullable|integer',
             ]);
 
             $schoolId = Auth::user()->school_id;
@@ -101,6 +126,7 @@ class SubjectController extends Controller
 
             $subject->update([
                 'name' => $request->input('name'),
+                'teacher_id' => $this->teacherId($request->input('teacher_id'), $schoolId),
             ]);
 
             return redirect()->route('subjects.index')

@@ -24,6 +24,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
+                    <th>Teacher</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -32,6 +33,7 @@
                     <tr>
                         <td>{{ $subject->id }}</td>
                         <td>{{ $subject->name }}</td>
+                        <td>{{ $subject->teacher ? $subject->teacher->first_name . ' ' . $subject->teacher->last_name : '—' }}</td>
                         <td>
                             <a href="{{ route('subjects.show', $subject->id) }}" class="btn btn-info btn-sm mb-1">View</a>
                             <a href="{{ route('subjects.edit', $subject->id) }}" class="btn btn-warning btn-sm mb-1">Edit</a>

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Pupil;
 use App\Models\ClassModel;
 use App\Models\Teacher;
+use App\Models\TimetableEntry;
 use App\Models\Secretary;
 use App\Models\Subject;
 use App\Models\ParentModel;
@@ -151,10 +152,46 @@ class UserController extends Controller
                 $attPresentToday = $todayRows->where('status', 'present')->count();
             }
 
+            // Published timetable for this teacher: today, plus the next day they teach.
+            $timetableTerm = null;
+            $timetableToday = collect();
+            $timetableNext = collect();
+            $timetableNextDay = null;
+
+            if ($teacher) {
+                $latest = TimetableEntry::where('school_id', $schoolId)
+                    ->whereNotNull('published_at')
+                    ->orderByDesc('published_at')
+                    ->first();
+
+                if ($latest) {
+                    $timetableTerm = $latest->term;
+
+                    $week = TimetableEntry::with(['subject', 'class'])
+                        ->where('teacher_id', $teacher->id)
+                        ->where('term', $latest->term)
+                        ->whereNotNull('published_at')
+                        ->orderBy('day')
+                        ->orderBy('period')
+                        ->get();
+
+                    $todayIso = now()->dayOfWeekIso;
+                    $timetableToday = $week->where('day', $todayIso)->values();
+
+                    $nextEntry = $week->first(fn ($entry) => $entry->day > $todayIso) ?: $week->first();
+
+                    if ($nextEntry) {
+                        $timetableNextDay = (int) $nextEntry->day;
+                        $timetableNext = $week->where('day', $timetableNextDay)->values();
+                    }
+                }
+            }
+
             return view('dashboard.teacher', compact(
                 'studentsCount', 'teachersCount', 'parentsCount',
                 'classesCount', 'subjectsCount', 'classNames', 'studentsPerClass',
-                'attClass', 'attTakenToday', 'attPresentToday'
+                'attClass', 'attTakenToday', 'attPresentToday',
+                'timetableTerm', 'timetableToday', 'timetableNext', 'timetableNextDay'
             ));
         } catch (Exception $e) {
             \Log::error('Error loading teacher dashboard: ' . $e->getMessage());

@@ -92,6 +92,69 @@
         </div>
     </div>
 
+    <!-- Timetable: today, or the next day this teacher has periods -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        My Timetable
+                        @if($timetableTerm)
+                            <small class="text-muted">({{ $timetableTerm }})</small>
+                        @endif
+                    </h3>
+                    @if($timetableTerm)
+                        <a href="{{ route('timetable.mine') }}" class="btn btn-sm btn-secondary">Full week</a>
+                    @endif
+                </div>
+                <div class="card-body">
+                    @if(! $timetableTerm)
+                        <p class="text-muted mb-0">No timetable published yet.</p>
+                    @else
+                        @if($timetableToday->isNotEmpty())
+                            <h6 class="text-muted">Today &mdash; {{ now()->format('l, j M') }}</h6>
+                            <table class="table table-sm table-bordered mb-3">
+                                <thead>
+                                    <tr><th style="width:90px">Period</th><th>Subject</th><th>Class</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($timetableToday as $entry)
+                                        <tr>
+                                            <td>P{{ $entry->period }}</td>
+                                            <td>{{ $entry->subject->name ?? '—' }}</td>
+                                            <td>{{ $entry->class->name ?? '—' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @elseif($timetableNext->isNotEmpty())
+                            <h6 class="text-muted">
+                                Nothing scheduled today. Next up &mdash;
+                                {{ \App\Models\TimetableEntry::dayName($timetableNextDay) }}
+                            </h6>
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead>
+                                    <tr><th style="width:90px">Period</th><th>Subject</th><th>Class</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($timetableNext as $entry)
+                                        <tr>
+                                            <td>P{{ $entry->period }}</td>
+                                            <td>{{ $entry->subject->name ?? '—' }}</td>
+                                            <td>{{ $entry->class->name ?? '—' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p class="text-muted mb-0">You have no periods on the published timetable.</p>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bar Chart and Calendar -->
     <div class="row">
         <!-- Bar Chart: Students in each Class -->

@@ -19,10 +19,14 @@ class School extends Model
         'owner_id',
         'is_premium',
         'subscription_expires_at',
+        'periods_per_day',
+        'days_per_week',
     ];
 
     protected $casts = [
         'subscription_expires_at' => 'date',
+        'periods_per_day'         => 'integer',
+        'days_per_week'           => 'integer',
     ];
 
     public function owner()
