@@ -45,6 +45,11 @@ jobs:
             
             # Ensure storage link exists
             php artisan storage:link || true
+
+            # Restart queue workers so they stop executing the previous release's
+            # code (a live worker holds the old classes in memory, so mail and SMS
+            # jobs fail or run against code that is no longer on disk)
+            php artisan queue:restart || true
             
             # Bring app back online
             php artisan up
@@ -69,8 +74,12 @@ jobs:
             php artisan down || true
             
             # Fetch latest changes from main
+            # reset --hard, not pull: a pull silently aborts on any local change
+            # on the server checkout and the deploy still reports success while
+            # running the old code. .env and storage/ are untracked/ignored, so
+            # they survive a reset.
             git fetch origin main
-            git pull
+            git reset --hard origin/main
             
             # Install PHP dependencies
             composer install --no-dev --optimize-autoloader --no-interaction
@@ -86,6 +95,11 @@ jobs:
             
             # Ensure storage link exists
             php artisan storage:link || true
+
+            # Restart queue workers so they stop executing the previous release's
+            # code (a live worker holds the old classes in memory, so mail and SMS
+            # jobs fail or run against code that is no longer on disk)
+            php artisan queue:restart || true
             
             # Bring app back online
             php artisan up
